@@ -71,7 +71,8 @@ class PlayerActivity : AppCompatActivity() {
                     player?.prepare()
                     player?.play()
                 } else if (player?.currentMediaItemIndex != startIndex) {
-                    player?.seekToDefaultPosition(startIndex)
+                    // YAHAN THA ERROR: Ab naya aur sahi code lag gaya hai
+                    player?.seekTo(startIndex, C.TIME_UNSET)
                     player?.play()
                 }
             }
@@ -81,6 +82,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         MediaController.releaseFuture(controllerFuture)
+        player = null
     }
 
     private fun setupGestures() {
