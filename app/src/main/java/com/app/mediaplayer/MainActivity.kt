@@ -44,10 +44,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAndRequestPermissions() {
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_AUDIO)
+        val permissions = mutableListOf<String>()
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+            permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS) // Notification
         } else {
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
 
         val missing = permissions.filter {
@@ -63,7 +67,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+        // Agar Media permissions mil gayi hain (bhale notification ki mili ho ya na mili ho)
+        if (grantResults.isNotEmpty()) {
             scanMedia()
         }
     }
@@ -80,15 +85,7 @@ class MainActivity : AppCompatActivity() {
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
 
             while (cursor.moveToNext()) {
-                videoList.add(
-                    MediaItem(
-                        cursor.getLong(idCol),
-                        cursor.getString(titleCol) ?: "Unknown Video",
-                        cursor.getString(pathCol),
-                        cursor.getLong(durationCol),
-                        true
-                    )
-                )
+                videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown Video", cursor.getString(pathCol), cursor.getLong(durationCol), true))
             }
         }
 
@@ -100,15 +97,7 @@ class MainActivity : AppCompatActivity() {
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
 
             while (cursor.moveToNext()) {
-                audioList.add(
-                    MediaItem(
-                        cursor.getLong(idCol),
-                        cursor.getString(titleCol) ?: "Unknown Audio",
-                        cursor.getString(pathCol),
-                        cursor.getLong(durationCol),
-                        false
-                    )
-                )
+                audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown Audio", cursor.getString(pathCol), cursor.getLong(durationCol), false))
             }
         }
 
@@ -119,8 +108,8 @@ class MainActivity : AppCompatActivity() {
         val list = if (showVideos) videoList else audioList
         recyclerView.adapter = MediaAdapter(list) { item ->
             val intent = Intent(this, PlayerActivity::class.java).apply {
-                putExtra("MEDIA_PATH", item.path)
-                putExtra("IS_VIDEO", item.isVideo)
+                putParcelableArrayListExtra("MEDIA_LIST", ArrayList(list))
+                putExtra("START_INDEX", list.indexOf(item))
             }
             startActivity(intent)
         }
