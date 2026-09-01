@@ -18,13 +18,14 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.google.common.util.concurrent.ListenableFuture
 import kotlin.math.abs
+// Guava (ListenableFuture) hata diya gaya hai taaki error na aaye
 
 class PlayerActivity : AppCompatActivity() {
 
     private var player: Player? = null
-    private lateinit var controllerFuture: ListenableFuture<MediaController>
+    // ListenableFuture ki jagah direct MediaController use kar rahe hain
+    private var mediaController: MediaController? = null 
     private lateinit var playerView: PlayerView
     private lateinit var tvGestureStatus: TextView
     private lateinit var audioManager: AudioManager
@@ -47,41 +48,46 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
-        controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         
-        controllerFuture.addListener({
-            player = controllerFuture.get()
-            playerView.player = player
+        // Asynchronous connection with a direct callback
+        val future = MediaController.Builder(this, sessionToken).buildAsync()
+        future.addListener({
+            try {
+                mediaController = future.get()
+                player = mediaController
+                playerView.player = player
 
-            val mediaList = intent.getParcelableArrayListExtra<MediaItem>("MEDIA_LIST")
-            val startIndex = intent.getIntExtra("START_INDEX", 0)
+                val mediaList = intent.getParcelableArrayListExtra<MediaItem>("MEDIA_LIST")
+                val startIndex = intent.getIntExtra("START_INDEX", 0)
 
-            if (mediaList != null) {
-                // Check agar current playlist chal rahi hai
-                val isAlreadyPlayingList = player?.mediaItemCount == mediaList.size
-                
-                if (!isAlreadyPlayingList) {
-                    val exoItems = mediaList.map { 
-                        ExoMediaItem.Builder()
-                            .setUri(it.path)
-                            .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
-                            .build() 
+                if (mediaList != null) {
+                    val isAlreadyPlayingList = player?.mediaItemCount == mediaList.size
+                    
+                    if (!isAlreadyPlayingList) {
+                        val exoItems = mediaList.map { 
+                            ExoMediaItem.Builder()
+                                .setUri(it.path)
+                                .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
+                                .build() 
+                        }
+                        player?.setMediaItems(exoItems, startIndex, C.TIME_UNSET)
+                        player?.prepare()
+                        player?.play()
+                    } else if (player?.currentMediaItemIndex != startIndex) {
+                        player?.seekTo(startIndex, C.TIME_UNSET)
+                        player?.play()
                     }
-                    player?.setMediaItems(exoItems, startIndex, C.TIME_UNSET)
-                    player?.prepare()
-                    player?.play()
-                } else if (player?.currentMediaItemIndex != startIndex) {
-                    // YAHAN THA ERROR: Ab naya aur sahi code lag gaya hai
-                    player?.seekTo(startIndex, C.TIME_UNSET)
-                    player?.play()
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }, ContextCompat.getMainExecutor(this))
     }
 
     override fun onStop() {
         super.onStop()
-        MediaController.releaseFuture(controllerFuture)
+        mediaController?.release()
+        mediaController = null
         player = null
     }
 
