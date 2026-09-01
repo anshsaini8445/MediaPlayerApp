@@ -5,10 +5,9 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     
-    <!-- Background Service & Notification Permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Notification ke liye zaruri -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -29,11 +28,11 @@
 
         <activity
             android:name=".PlayerActivity"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" /> <!-- Ek time pe ek hi player khule -->
+            android:launchMode="singleTop"
+            android:supportsPictureInPicture="true" /> <!-- Yahan PiP enable kiya gaya hai -->
 
-        <!-- Background Playback Service -->
         <service
             android:name=".PlaybackService"
             android:foregroundServiceType="mediaPlayback"
