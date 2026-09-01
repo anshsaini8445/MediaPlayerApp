@@ -13,7 +13,9 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.media3.common.C
@@ -34,12 +36,15 @@ class PlayerActivity : AppCompatActivity() {
     private var mediaController: MediaController? = null 
     private lateinit var playerView: PlayerView
     private lateinit var tvGestureStatus: TextView
+    private lateinit var btnAudioOnly: LinearLayout // Naya Button
     private lateinit var audioManager: AudioManager
     
-    // Gestures ke liye variables
     private lateinit var gestureDetector: GestureDetector
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var scaleFactor = 1.0f
+
+    // Flag check karne ke liye ki abhi Audio mode mein hai ya nahi
+    private var isAudioOnlyMode = false 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,10 +52,13 @@ class PlayerActivity : AppCompatActivity() {
 
         playerView = findViewById(R.id.playerView)
         tvGestureStatus = findViewById(R.id.tvGestureStatus)
+        btnAudioOnly = findViewById(R.id.btnAudioOnly)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+        
         setupGestures()
+        setupAudioOnlyButton()
     }
 
     override fun onStart() {
@@ -91,10 +99,28 @@ class PlayerActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    // Auto Pop-up Play (PiP Mode)
+    // Video to Audio Converter ka code
+    private fun setupAudioOnlyButton() {
+        btnAudioOnly.setOnClickListener {
+            isAudioOnlyMode = !isAudioOnlyMode
+            
+            if (isAudioOnlyMode) {
+                // Video hide karo, sirf audio chalne do
+                playerView.visibility = View.INVISIBLE
+                Toast.makeText(this, "Audio Mode Enabled", Toast.LENGTH_SHORT).show()
+                // Yahan se aap chaho toh Activity band karke sirf background me bja sakte ho:
+                // finish() 
+            } else {
+                // Video wapas lao
+                playerView.visibility = View.VISIBLE
+                Toast.makeText(this, "Video Mode Enabled", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAudioOnlyMode) {
             val params = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
                 .build()
@@ -105,6 +131,8 @@ class PlayerActivity : AppCompatActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         playerView.useController = !isInPictureInPictureMode
+        // PiP mode me button chupa do
+        btnAudioOnly.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
     }
 
     override fun onStop() {
@@ -115,11 +143,12 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun setupGestures() {
-        // Pinch to Zoom (600%)
         scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
+                if (isAudioOnlyMode) return false // Audio mode me zoom band kar do
+                
                 scaleFactor *= detector.scaleFactor
-                scaleFactor = max(1.0f, min(scaleFactor, 6.0f)) // 1x se 6x tak zoom
+                scaleFactor = max(1.0f, min(scaleFactor, 6.0f)) 
                 
                 val contentFrame = playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)
                 contentFrame?.scaleX = scaleFactor
@@ -128,7 +157,6 @@ class PlayerActivity : AppCompatActivity() {
             }
         })
 
-        // Volume, Brightness, Double Tap aur Long Press
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             
             override fun onDoubleTap(e: MotionEvent): Boolean {
@@ -138,7 +166,6 @@ class PlayerActivity : AppCompatActivity() {
                 return true
             }
 
-            // Long Press par Equalizer kholna
             override fun onLongPress(e: MotionEvent) {
                 openEqualizer()
             }
@@ -166,11 +193,10 @@ class PlayerActivity : AppCompatActivity() {
             if (event.action == MotionEvent.ACTION_UP) {
                 tvGestureStatus.visibility = View.GONE
             }
-            false
+            false 
         }
     }
 
-    // 10-Band Native Equalizer
     private fun openEqualizer() {
         val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
             putExtra(AudioEffect.EXTRA_AUDIO_SESSION, 0)
