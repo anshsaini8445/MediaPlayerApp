@@ -3,8 +3,10 @@ package com.app.mediaplayer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import java.util.Locale
 
 class MediaAdapter(
@@ -15,7 +17,7 @@ class MediaAdapter(
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(R.id.tvTitle)
         val duration: TextView = view.findViewById(R.id.tvDuration)
-        val icon: TextView = view.findViewById(R.id.tvIcon)
+        val thumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -26,11 +28,21 @@ class MediaAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.title.text = item.title
-        holder.icon.text = if (item.isVideo) "🎬" else "🎵"
 
         val minutes = (item.duration / 1000) / 60
         val seconds = (item.duration / 1000) % 60
         holder.duration.text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+
+        // Glide se video ka thumbnail ya audio ka icon load karna
+        if (item.isVideo) {
+            Glide.with(holder.itemView.context)
+                .load(item.path)
+                .centerCrop()
+                .placeholder(android.R.drawable.ic_media_video)
+                .into(holder.thumbnail)
+        } else {
+            holder.thumbnail.setImageResource(android.R.drawable.ic_media_play)
+        }
 
         holder.itemView.setOnClickListener { onClick(item) }
     }
