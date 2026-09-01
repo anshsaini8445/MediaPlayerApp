@@ -6,22 +6,26 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.tabs.TabLayout
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
     private val videoList = mutableListOf<MediaItem>()
     private val audioList = mutableListOf<MediaItem>()
     private lateinit var recyclerView: RecyclerView
-    private lateinit var tabLayout: TabLayout
+    private lateinit var settingsLayout: LinearLayout
+    private lateinit var tvHeader: TextView
+    private lateinit var bottomNav: BottomNavigationView
 
     companion object {
-        // Ye global list hai taaki Intent mein data pass karne ka error na aaye
         var currentMediaList: List<MediaItem> = emptyList()
     }
 
@@ -30,27 +34,44 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         recyclerView = findViewById(R.id.recyclerView)
-        tabLayout = findViewById(R.id.tabLayout)
+        settingsLayout = findViewById(R.id.settingsLayout)
+        tvHeader = findViewById(R.id.tvHeader)
+        bottomNav = findViewById(R.id.bottomNav)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        tabLayout.addTab(tabLayout.newTab().setText("Videos"))
-        tabLayout.addTab(tabLayout.newTab().setText("Music"))
-
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                updateList(tab?.position == 0)
+        // Niche wale buttons ka logic
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_video -> {
+                    tvHeader.text = "Videos"
+                    recyclerView.visibility = View.VISIBLE
+                    settingsLayout.visibility = View.GONE
+                    updateList(true)
+                    true
+                }
+                R.id.nav_music -> {
+                    tvHeader.text = "Music"
+                    recyclerView.visibility = View.VISIBLE
+                    settingsLayout.visibility = View.GONE
+                    updateList(false)
+                    true
+                }
+                R.id.nav_settings -> {
+                    tvHeader.text = "Me"
+                    recyclerView.visibility = View.GONE
+                    settingsLayout.visibility = View.VISIBLE
+                    true
+                }
+                else -> false
             }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
+        }
 
         checkAndRequestPermissions()
     }
 
     private fun checkAndRequestPermissions() {
         val permissions = mutableListOf<String>()
-        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
             permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
@@ -81,6 +102,7 @@ class MainActivity : AppCompatActivity() {
         videoList.clear()
         audioList.clear()
 
+        // Video scan
         val videoProjection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION)
         contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
@@ -93,6 +115,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Audio scan
         val audioProjection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DURATION)
         contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audioProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
@@ -105,13 +128,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        updateList(tabLayout.selectedTabPosition == 0)
+        // By default Video wala tab select ho
+        bottomNav.selectedItemId = R.id.nav_video
     }
 
     private fun updateList(showVideos: Boolean) {
         val list = if (showVideos) videoList else audioList
         recyclerView.adapter = MediaAdapter(list) { item ->
-            // Parcelable wala error hatane ke liye list ko global variable me dal diya
             currentMediaList = list
             val intent = Intent(this, PlayerActivity::class.java).apply {
                 putExtra("START_INDEX", list.indexOf(item))
