@@ -1,9 +1,12 @@
 package com.app.mediaplayer
 
+import android.app.PictureInPictureParams
 import android.content.ComponentName
 import android.content.Context
 import android.media.AudioManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -37,9 +40,7 @@ class PlayerActivity : AppCompatActivity() {
         tvGestureStatus = findViewById(R.id.tvGestureStatus)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        // Video Scaling (Fit to Screen)
         playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-
         setupGestures()
     }
 
@@ -54,7 +55,6 @@ class PlayerActivity : AppCompatActivity() {
                 player = mediaController
                 playerView.player = player
 
-                // Parcelable error bachane ke liye list yahan se li gayi hai
                 val mediaList = MainActivity.currentMediaList
                 val startIndex = intent.getIntExtra("START_INDEX", 0)
 
@@ -82,6 +82,27 @@ class PlayerActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    // Auto Pop-up Play (PiP Mode) jab user Home button dabaye
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val params = PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(16, 9))
+                .build()
+            enterPictureInPictureMode(params)
+        }
+    }
+
+    // PiP Mode me video pe click aane waale controls chupana
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (isInPictureInPictureMode) {
+            playerView.useController = false
+        } else {
+            playerView.useController = true
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         mediaController?.release()
@@ -91,7 +112,6 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setupGestures() {
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 player?.let {
                     if (it.isPlaying) it.pause() else it.play()
