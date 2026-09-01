@@ -33,14 +33,15 @@ class MediaAdapter(
         val seconds = (item.duration / 1000) % 60
         holder.duration.text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
 
-        // Glide se video ka thumbnail ya audio ka icon load karna
+        // Glide se video ka thumbnail load karna
         if (item.isVideo) {
             Glide.with(holder.itemView.context)
                 .load(item.path)
                 .centerCrop()
-                .placeholder(android.R.drawable.ic_media_video)
+                .placeholder(android.R.color.darker_gray) // Error fixed here!
                 .into(holder.thumbnail)
         } else {
+            // Audio ke liye default play icon
             holder.thumbnail.setImageResource(android.R.drawable.ic_media_play)
         }
 
