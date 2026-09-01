@@ -20,6 +20,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var tabLayout: TabLayout
 
+    companion object {
+        // Ye global list hai taaki Intent mein data pass karne ka error na aaye
+        var currentMediaList: List<MediaItem> = emptyList()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -49,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
             permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
-            permissions.add(Manifest.permission.POST_NOTIFICATIONS) // Notification
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
@@ -67,7 +72,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Agar Media permissions mil gayi hain (bhale notification ki mili ho ya na mili ho)
         if (grantResults.isNotEmpty()) {
             scanMedia()
         }
@@ -107,8 +111,9 @@ class MainActivity : AppCompatActivity() {
     private fun updateList(showVideos: Boolean) {
         val list = if (showVideos) videoList else audioList
         recyclerView.adapter = MediaAdapter(list) { item ->
+            // Parcelable wala error hatane ke liye list ko global variable me dal diya
+            currentMediaList = list
             val intent = Intent(this, PlayerActivity::class.java).apply {
-                putParcelableArrayListExtra("MEDIA_LIST", ArrayList(list))
                 putExtra("START_INDEX", list.indexOf(item))
             }
             startActivity(intent)
