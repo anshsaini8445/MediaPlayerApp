@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -25,6 +26,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsLayout: ScrollView
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var subTabs: LinearLayout
+    
+    // Naye Home Screen Buttons
+    private lateinit var btnViewToggle: TextView
+    private lateinit var tabVideo: TextView
+    private lateinit var tabFolder: TextView
+    private lateinit var tabPlaylist: TextView
+
+    private var isGridView = false // List aur Grid ke beech switch karne ke liye
 
     companion object {
         var currentMediaList: List<MediaItem> = emptyList()
@@ -38,8 +47,16 @@ class MainActivity : AppCompatActivity() {
         settingsLayout = findViewById(R.id.settingsLayout)
         bottomNav = findViewById(R.id.bottomNav)
         subTabs = findViewById(R.id.subTabs)
+        
+        btnViewToggle = findViewById(R.id.btnViewToggle)
+        tabVideo = findViewById(R.id.tabVideo)
+        tabFolder = findViewById(R.id.tabFolder)
+        tabPlaylist = findViewById(R.id.tabPlaylist)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        setupTopTabs()
+        setupViewToggle()
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -68,6 +85,47 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkAndRequestPermissions()
+    }
+
+    // Top Tabs (Video/Folder/Playlist) ke color badalne ka logic
+    private fun setupTopTabs() {
+        val activeColor = android.graphics.Color.parseColor("#2196F3") // MAX Blue
+        val inactiveColor = android.graphics.Color.parseColor("#AAAAAA") // Grey
+
+        tabVideo.setOnClickListener {
+            tabVideo.setTextColor(activeColor)
+            tabFolder.setTextColor(inactiveColor)
+            tabPlaylist.setTextColor(inactiveColor)
+            updateList(true)
+        }
+
+        tabFolder.setOnClickListener {
+            tabFolder.setTextColor(activeColor)
+            tabVideo.setTextColor(inactiveColor)
+            tabPlaylist.setTextColor(inactiveColor)
+            // Agle phase me yahan folder list load karenge
+        }
+
+        tabPlaylist.setOnClickListener {
+            tabPlaylist.setTextColor(activeColor)
+            tabVideo.setTextColor(inactiveColor)
+            tabFolder.setTextColor(inactiveColor)
+        }
+    }
+
+    // List aur Grid View Toggle ka logic
+    private fun setupViewToggle() {
+        btnViewToggle.setOnClickListener {
+            isGridView = !isGridView
+            if (isGridView) {
+                btnViewToggle.text = "☰" // Icon change to List
+                recyclerView.layoutManager = GridLayoutManager(this, 2)
+            } else {
+                btnViewToggle.text = "☷" // Icon change to Grid
+                recyclerView.layoutManager = LinearLayoutManager(this)
+            }
+            recyclerView.adapter?.notifyDataSetChanged()
+        }
     }
 
     private fun checkAndRequestPermissions() {
