@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,7 +34,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabPlaylist: TextView
 
     private var isGridView = false 
-    private var isShowingVideos = true // Yaad rakhne ke liye ki Video chal raha hai ya Audio
+    private var isShowingVideos = true 
+    private var isFolderView = false 
 
     companion object {
         var currentMediaList: List<MediaItem> = emptyList()
@@ -62,6 +64,8 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_video -> {
                     isShowingVideos = true
+                    isFolderView = false
+                    resetTabsToDefault()
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
@@ -70,6 +74,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_music -> {
                     isShowingVideos = false
+                    isFolderView = false
+                    resetTabsToDefault()
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
@@ -89,11 +95,20 @@ class MainActivity : AppCompatActivity() {
         checkAndRequestPermissions()
     }
 
+    private fun resetTabsToDefault() {
+        val activeColor = android.graphics.Color.parseColor("#2196F3")
+        val inactiveColor = android.graphics.Color.parseColor("#AAAAAA")
+        tabVideo.setTextColor(activeColor)
+        tabFolder.setTextColor(inactiveColor)
+        tabPlaylist.setTextColor(inactiveColor)
+    }
+
     private fun setupTopTabs() {
         val activeColor = android.graphics.Color.parseColor("#2196F3")
         val inactiveColor = android.graphics.Color.parseColor("#AAAAAA")
 
         tabVideo.setOnClickListener {
+            isFolderView = false
             tabVideo.setTextColor(activeColor)
             tabFolder.setTextColor(inactiveColor)
             tabPlaylist.setTextColor(inactiveColor)
@@ -101,29 +116,33 @@ class MainActivity : AppCompatActivity() {
         }
 
         tabFolder.setOnClickListener {
+            isFolderView = true
             tabFolder.setTextColor(activeColor)
             tabVideo.setTextColor(inactiveColor)
             tabPlaylist.setTextColor(inactiveColor)
+            updateList()
         }
 
         tabPlaylist.setOnClickListener {
+            isFolderView = false
             tabPlaylist.setTextColor(activeColor)
             tabVideo.setTextColor(inactiveColor)
             tabFolder.setTextColor(inactiveColor)
+            updateList() 
         }
     }
 
     private fun setupViewToggle() {
         btnViewToggle.setOnClickListener {
+            if (isFolderView) return@setOnClickListener 
+            
             isGridView = !isGridView
             if (isGridView) {
                 btnViewToggle.text = "☰"
-                recyclerView.layoutManager = GridLayoutManager(this, 2)
             } else {
                 btnViewToggle.text = "☷"
-                recyclerView.layoutManager = LinearLayoutManager(this)
             }
-            updateList() // View badalte hi nayi design laagu karo
+            updateList() 
         }
     }
 
@@ -186,13 +205,44 @@ class MainActivity : AppCompatActivity() {
         bottomNav.selectedItemId = R.id.nav_video
     }
 
+    private fun getFolders(items: List<MediaItem>): List<MediaFolder> {
+        val grouped = items.groupBy { item ->
+            try {
+                File(item.path).parentFile?.name ?: "Unknown Folder"
+            } catch (e: Exception) {
+                "Unknown Folder"
+            }
+        }
+        return grouped.map { MediaFolder(it.key, it.value) }.sortedBy { it.name }
+    }
+
     private fun updateList() {
         val list = if (isShowingVideos) videoList else audioList
-        // Yahan par hum isGrid (true/false) bhej rahe hain
-        recyclerView.adapter = MediaAdapter(list, isGridView) { item ->
-            currentMediaList = list
+
+        if (isFolderView) {
+            val folders = getFolders(list)
+            recyclerView.layoutManager = LinearLayoutManager(this)
+            recyclerView.adapter = FolderAdapter(folders) { clickedFolder ->
+                isFolderView = false
+                tabFolder.setTextColor(android.graphics.Color.parseColor("#AAAAAA"))
+                tabVideo.setTextColor(android.graphics.Color.parseColor("#2196F3"))
+                showItemsInFolder(clickedFolder.mediaItems)
+            }
+        } else {
+            showItemsInFolder(list)
+        }
+    }
+
+    private fun showItemsInFolder(itemsToShow: List<MediaItem>) {
+        if (isGridView) {
+            recyclerView.layoutManager = GridLayoutManager(this, 2)
+        } else {
+            recyclerView.layoutManager = LinearLayoutManager(this)
+        }
+        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView) { item ->
+            currentMediaList = itemsToShow
             val intent = Intent(this, PlayerActivity::class.java).apply {
-                putExtra("START_INDEX", list.indexOf(item))
+                putExtra("START_INDEX", itemsToShow.indexOf(item))
             }
             startActivity(intent)
         }
