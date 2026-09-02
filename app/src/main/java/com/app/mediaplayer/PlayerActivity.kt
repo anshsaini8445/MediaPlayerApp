@@ -1,5 +1,6 @@
 package com.app.mediaplayer
 
+import android.app.AlertDialog
 import android.app.PictureInPictureParams
 import android.content.ComponentName
 import android.content.Context
@@ -8,6 +9,9 @@ import android.media.AudioManager
 import android.media.audiofx.AudioEffect
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
 import android.util.Rational
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -51,7 +55,25 @@ class PlayerActivity : AppCompatActivity() {
     private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
     private var isMirrored = false 
     private var isAudioOnlyMode = false
-    private var isHWDecoder = true // HW / SW Decoder track karne ke liye
+    private var isHWDecoder = true 
+
+    // Timer aur AB Repeat ke variables
+    private var sleepTimer: CountDownTimer? = null
+    private var repeatA: Long = -1L
+    private var repeatB: Long = -1L
+    private val handler = Handler(Looper.getMainLooper())
+    private val abRepeatRunnable = object : Runnable {
+        override fun run() {
+            if (repeatA != -1L && repeatB != -1L) {
+                player?.let { p ->
+                    if (p.currentPosition >= repeatB) {
+                        p.seekTo(repeatA)
+                    }
+                }
+            }
+            handler.postDelayed(this, 500)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -167,7 +189,6 @@ class PlayerActivity : AppCompatActivity() {
             }
             player?.playbackParameters = PlaybackParameters(currentSpeed)
             tvSpeed.text = "${currentSpeed}x"
-            Toast.makeText(this, "Speed: ${currentSpeed}x", Toast.LENGTH_SHORT).show()
         }
 
         btnResize.setOnClickListener {
@@ -182,14 +203,14 @@ class PlayerActivity : AppCompatActivity() {
         btnLock.setOnClickListener {
             isLocked = !isLocked
             if(isLocked) {
-                Toast.makeText(this, "Screen Locked \uD83D\uDD12", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Screen Locked 🔒", Toast.LENGTH_SHORT).show()
                 playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.INVISIBLE
                 playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.INVISIBLE
                 playerView.findViewById<View>(R.id.btnMute).visibility = View.INVISIBLE
                 playerView.findViewById<View>(R.id.btnCut).visibility = View.INVISIBLE
                 playerView.findViewById<View>(R.id.btnScreenshot).visibility = View.INVISIBLE
             } else {
-                Toast.makeText(this, "Screen Unlocked \uD83D\uDD13", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Screen Unlocked 🔓", Toast.LENGTH_SHORT).show()
                 playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.VISIBLE
                 playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.VISIBLE
                 playerView.findViewById<View>(R.id.btnMute).visibility = View.VISIBLE
@@ -198,42 +219,53 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        // 3 Dots (More Settings) par Naya Premium Pop-up kholna
         btnMoreSettings.setOnClickListener { 
             showAdvancedSettingsDialog()
         }
 
         playerView.findViewById<ImageButton>(R.id.btnCut).setOnClickListener { 
-            Toast.makeText(this, "Video Cutter Mode", Toast.LENGTH_SHORT).show() 
+            Toast.makeText(this, "Video Cutter Module will load here", Toast.LENGTH_SHORT).show() 
         }
         playerView.findViewById<ImageButton>(R.id.btnAudioTrack).setOnClickListener { 
-            Toast.makeText(this, "Audio Track Selector", Toast.LENGTH_SHORT).show() 
+            Toast.makeText(this, "Multiple Audio Tracks Selector", Toast.LENGTH_SHORT).show() 
         }
         playerView.findViewById<ImageButton>(R.id.btnScreenshot).setOnClickListener { 
-            Toast.makeText(this, "Screenshot Captured! \uD83D\uDCF8", Toast.LENGTH_SHORT).show() 
+            Toast.makeText(this, "Screenshot Captured! 📸", Toast.LENGTH_SHORT).show() 
         }
     }
 
-    // NAYA PREMIUM SETTINGS MENU
     private fun showAdvancedSettingsDialog() {
         val dialog = BottomSheetDialog(this)
         val view = layoutInflater.inflate(R.layout.dialog_more_settings, null)
         dialog.setContentView(view)
 
-        // Row 1
-        view.findViewById<View>(R.id.btnAudioTrackMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Audio Track Options", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnAudioTrackMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "No external tracks found", Toast.LENGTH_SHORT).show() }
         view.findViewById<View>(R.id.btnEqualizerMenu).setOnClickListener { dialog.dismiss(); openEqualizer() }
         view.findViewById<View>(R.id.btnCastMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Searching for TV to Cast 📺...", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnShareMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Share Menu", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnShareMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Share App", Toast.LENGTH_SHORT).show() }
 
-        // Row 2
-        view.findViewById<View>(R.id.btnCutMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Video Cutter Mode", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnCutMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Opening Video Cutter", Toast.LENGTH_SHORT).show() }
         view.findViewById<View>(R.id.btnFavMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Added to Favorites ⭐", Toast.LENGTH_SHORT).show() }
         view.findViewById<View>(R.id.btnBookmarkMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Video Bookmarked 🔖", Toast.LENGTH_SHORT).show() }
         view.findViewById<View>(R.id.btnVRMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "VR 360 Mode Activated 🕶️", Toast.LENGTH_SHORT).show() }
 
-        // Settings Row
-        view.findViewById<View>(R.id.btnABRepeat).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "A-B Repeat Mode", Toast.LENGTH_SHORT).show() }
+        // AB Repeat Logic
+        view.findViewById<View>(R.id.btnABRepeat).setOnClickListener { 
+            dialog.dismiss()
+            if (repeatA == -1L) {
+                repeatA = player?.currentPosition ?: 0L
+                Toast.makeText(this, "Point A Set! Click again for Point B.", Toast.LENGTH_SHORT).show()
+                handler.post(abRepeatRunnable)
+            } else if (repeatB == -1L) {
+                repeatB = player?.currentPosition ?: 0L
+                Toast.makeText(this, "A-B Repeat Started! 🔁", Toast.LENGTH_SHORT).show()
+            } else {
+                repeatA = -1L
+                repeatB = -1L
+                handler.removeCallbacks(abRepeatRunnable)
+                Toast.makeText(this, "A-B Repeat Cancelled", Toast.LENGTH_SHORT).show()
+            }
+        }
         
         view.findViewById<View>(R.id.btnNightMode).setOnClickListener {
             dialog.dismiss()
@@ -253,13 +285,15 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        view.findViewById<View>(R.id.btnTimer).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Sleep Timer Set ⏱️", Toast.LENGTH_SHORT).show() }
+        // Sleep Timer Logic
+        view.findViewById<View>(R.id.btnTimer).setOnClickListener { 
+            dialog.dismiss()
+            showTimerDialog()
+        }
 
-        // Decoder Toggle
         val btnHW = view.findViewById<TextView>(R.id.btnHW)
         val btnSW = view.findViewById<TextView>(R.id.btnSW)
         
-        // Setup initial colors based on current state
         if(isHWDecoder) {
             btnHW.setTextColor(android.graphics.Color.parseColor("#00E676"))
             btnSW.setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
@@ -279,13 +313,40 @@ class PlayerActivity : AppCompatActivity() {
             dialog.dismiss()
         }
 
-        // More Row
         view.findViewById<View>(R.id.btnEditInfo).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Edit Video Info", Toast.LENGTH_SHORT).show() }
         view.findViewById<View>(R.id.btnTutorial).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Opening Tutorials...", Toast.LENGTH_SHORT).show() }
         view.findViewById<View>(R.id.btnFileInfo).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Showing File Info", Toast.LENGTH_SHORT).show() }
         view.findViewById<View>(R.id.btnFeedback).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Send Feedback", Toast.LENGTH_SHORT).show() }
 
         dialog.show()
+    }
+
+    private fun showTimerDialog() {
+        val options = arrayOf("10 Minutes", "20 Minutes", "30 Minutes", "Turn Off Timer")
+        AlertDialog.Builder(this)
+            .setTitle("Set Sleep Timer")
+            .setItems(options) { _, which ->
+                sleepTimer?.cancel() // Purana timer band karo
+                when (which) {
+                    0 -> startTimer(10)
+                    1 -> startTimer(20)
+                    2 -> startTimer(30)
+                    3 -> Toast.makeText(this, "Timer Cancelled", Toast.LENGTH_SHORT).show()
+                }
+            }.show()
+    }
+
+    private fun startTimer(minutes: Int) {
+        val millis = minutes * 60 * 1000L
+        sleepTimer = object : CountDownTimer(millis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+            override fun onFinish() {
+                player?.pause()
+                Toast.makeText(this@PlayerActivity, "Sleep Timer Finished. Video Paused.", Toast.LENGTH_LONG).show()
+                finish() // App band kar dega
+            }
+        }.start()
+        Toast.makeText(this, "Timer set for $minutes minutes ⏱️", Toast.LENGTH_SHORT).show()
     }
 
     override fun onUserLeaveHint() {
@@ -299,6 +360,12 @@ class PlayerActivity : AppCompatActivity() {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         playerView.useController = !isInPictureInPictureMode
         btnAudioOnly?.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        sleepTimer?.cancel()
+        handler.removeCallbacks(abRepeatRunnable)
     }
 
     override fun onStop() {
@@ -373,7 +440,7 @@ class PlayerActivity : AppCompatActivity() {
         try {
             startActivityForResult(intent, 0)
         } catch (e: Exception) {
-            showStatus("Equalizer not supported on this device")
+            showStatus("Equalizer not supported")
         }
     }
 
