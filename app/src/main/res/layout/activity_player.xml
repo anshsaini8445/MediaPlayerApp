@@ -4,14 +4,16 @@
     android:id="@+id/playerRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black">
+    android:background="#000000">
 
+    <!-- Video Player -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/playerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:use_controller="true" />
 
+    <!-- Volume aur Brightness dikhane ke liye -->
     <TextView
         android:id="@+id/tvGestureStatus"
         android:layout_width="wrap_content"
@@ -19,8 +21,37 @@
         android:layout_gravity="center"
         android:background="#80000000"
         android:padding="16dp"
-        android:textColor="@color/accent"
+        android:textColor="#00E676"
         android:textSize="20sp"
         android:visibility="gone" />
+
+    <!-- Video to Audio Converter Button (Top Right me aayega) -->
+    <LinearLayout
+        android:id="@+id/btnAudioOnly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="20dp"
+        android:background="#80000000"
+        android:padding="8dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎧"
+            android:textSize="18sp"
+            android:layout_marginEnd="4dp"/>
+            
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Audio Only"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </FrameLayout>
