@@ -27,13 +27,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var subTabs: LinearLayout
     
-    // Naye Home Screen Buttons
     private lateinit var btnViewToggle: TextView
     private lateinit var tabVideo: TextView
     private lateinit var tabFolder: TextView
     private lateinit var tabPlaylist: TextView
 
-    private var isGridView = false // List aur Grid ke beech switch karne ke liye
+    private var isGridView = false 
+    private var isShowingVideos = true // Yaad rakhne ke liye ki Video chal raha hai ya Audio
 
     companion object {
         var currentMediaList: List<MediaItem> = emptyList()
@@ -61,17 +61,19 @@ class MainActivity : AppCompatActivity() {
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_video -> {
+                    isShowingVideos = true
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    updateList(true)
+                    updateList()
                     true
                 }
                 R.id.nav_music -> {
+                    isShowingVideos = false
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    updateList(false)
+                    updateList()
                     true
                 }
                 R.id.nav_settings -> {
@@ -87,23 +89,21 @@ class MainActivity : AppCompatActivity() {
         checkAndRequestPermissions()
     }
 
-    // Top Tabs (Video/Folder/Playlist) ke color badalne ka logic
     private fun setupTopTabs() {
-        val activeColor = android.graphics.Color.parseColor("#2196F3") // MAX Blue
-        val inactiveColor = android.graphics.Color.parseColor("#AAAAAA") // Grey
+        val activeColor = android.graphics.Color.parseColor("#2196F3")
+        val inactiveColor = android.graphics.Color.parseColor("#AAAAAA")
 
         tabVideo.setOnClickListener {
             tabVideo.setTextColor(activeColor)
             tabFolder.setTextColor(inactiveColor)
             tabPlaylist.setTextColor(inactiveColor)
-            updateList(true)
+            updateList()
         }
 
         tabFolder.setOnClickListener {
             tabFolder.setTextColor(activeColor)
             tabVideo.setTextColor(inactiveColor)
             tabPlaylist.setTextColor(inactiveColor)
-            // Agle phase me yahan folder list load karenge
         }
 
         tabPlaylist.setOnClickListener {
@@ -113,18 +113,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // List aur Grid View Toggle ka logic
     private fun setupViewToggle() {
         btnViewToggle.setOnClickListener {
             isGridView = !isGridView
             if (isGridView) {
-                btnViewToggle.text = "☰" // Icon change to List
+                btnViewToggle.text = "☰"
                 recyclerView.layoutManager = GridLayoutManager(this, 2)
             } else {
-                btnViewToggle.text = "☷" // Icon change to Grid
+                btnViewToggle.text = "☷"
                 recyclerView.layoutManager = LinearLayoutManager(this)
             }
-            recyclerView.adapter?.notifyDataSetChanged()
+            updateList() // View badalte hi nayi design laagu karo
         }
     }
 
@@ -187,9 +186,10 @@ class MainActivity : AppCompatActivity() {
         bottomNav.selectedItemId = R.id.nav_video
     }
 
-    private fun updateList(showVideos: Boolean) {
-        val list = if (showVideos) videoList else audioList
-        recyclerView.adapter = MediaAdapter(list) { item ->
+    private fun updateList() {
+        val list = if (isShowingVideos) videoList else audioList
+        // Yahan par hum isGrid (true/false) bhej rahe hain
+        recyclerView.adapter = MediaAdapter(list, isGridView) { item ->
             currentMediaList = list
             val intent = Intent(this, PlayerActivity::class.java).apply {
                 putExtra("START_INDEX", list.indexOf(item))
