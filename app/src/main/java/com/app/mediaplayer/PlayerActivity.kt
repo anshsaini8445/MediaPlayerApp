@@ -13,7 +13,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import android.widget.LinearLayout
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem as ExoMediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -36,15 +37,16 @@ class PlayerActivity : AppCompatActivity() {
     private var mediaController: MediaController? = null 
     private lateinit var playerView: PlayerView
     private lateinit var tvGestureStatus: TextView
-    private lateinit var btnAudioOnly: LinearLayout // Naya Button
     private lateinit var audioManager: AudioManager
     
     private lateinit var gestureDetector: GestureDetector
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var scaleFactor = 1.0f
 
-    // Flag check karne ke liye ki abhi Audio mode mein hai ya nahi
-    private var isAudioOnlyMode = false 
+    // Naye Features ke Variables
+    private var isLocked = false
+    private var currentSpeed = 1.0f
+    private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,13 +54,10 @@ class PlayerActivity : AppCompatActivity() {
 
         playerView = findViewById(R.id.playerView)
         tvGestureStatus = findViewById(R.id.tvGestureStatus)
-        btnAudioOnly = findViewById(R.id.btnAudioOnly)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-        
+        playerView.resizeMode = resizeMode
         setupGestures()
-        setupAudioOnlyButton()
     }
 
     override fun onStart() {
@@ -71,6 +70,9 @@ class PlayerActivity : AppCompatActivity() {
                 mediaController = future.get()
                 player = mediaController
                 playerView.player = player
+
+                // Custom UI ke buttons yahan connect honge
+                setupCustomControls()
 
                 val mediaList = MainActivity.currentMediaList
                 val startIndex = intent.getIntExtra("START_INDEX", 0)
@@ -99,40 +101,119 @@ class PlayerActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    // Video to Audio Converter ka code
-    private fun setupAudioOnlyButton() {
-        btnAudioOnly.setOnClickListener {
-            isAudioOnlyMode = !isAudioOnlyMode
-            
-            if (isAudioOnlyMode) {
-                // Video hide karo, sirf audio chalne do
-                playerView.visibility = View.INVISIBLE
-                Toast.makeText(this, "Audio Mode Enabled", Toast.LENGTH_SHORT).show()
-                // Yahan se aap chaho toh Activity band karke sirf background me bja sakte ho:
-                // finish() 
-            } else {
-                // Video wapas lao
-                playerView.visibility = View.VISIBLE
-                Toast.makeText(this, "Video Mode Enabled", Toast.LENGTH_SHORT).show()
+    // Naye UI buttons ko zinda karne ka Code
+    private fun setupCustomControls() {
+        val tvTitle = playerView.findViewById<TextView>(R.id.tvVideoTitle)
+        val btnBack = playerView.findViewById<ImageButton>(R.id.btnBack)
+        val btnPiP = playerView.findViewById<ImageButton>(R.id.btnPiP)
+        val btnMute = playerView.findViewById<ImageButton>(R.id.btnMute)
+        val btnLock = playerView.findViewById<ImageButton>(R.id.btnLock)
+        val tvSpeed = playerView.findViewById<TextView>(R.id.tvSpeed)
+        val btnResize = playerView.findViewById<ImageButton>(R.id.btnResize)
+        
+        // Video ka original naam top par dikhane ke liye
+        player?.addListener(object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
+                super.onMediaItemTransition(mediaItem, reason)
+                tvTitle.text = mediaItem?.mediaMetadata?.title?.toString() ?: "MAX Player Video"
             }
+        })
+
+        // 1. Back Button
+        btnBack.setOnClickListener { finish() }
+
+        // 2. PiP (Pop-up Player) Button
+        btnPiP.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
+            }
+        }
+
+        // 3. Mute/Unmute Button
+        btnMute.setOnClickListener {
+            player?.let { p ->
+                if (p.volume > 0f) {
+                    p.volume = 0f
+                    Toast.makeText(this, "Video Muted", Toast.LENGTH_SHORT).show()
+                } else {
+                    p.volume = 1f
+                    Toast.makeText(this, "Volume Restored", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        // 4. Video Speed (1x, 1.5x, 2x, 0.5x)
+        tvSpeed.setOnClickListener {
+            currentSpeed = when (currentSpeed) {
+                1.0f -> 1.5f
+                1.5f -> 2.0f
+                2.0f -> 0.5f
+                else -> 1.0f
+            }
+            player?.playbackParameters = PlaybackParameters(currentSpeed)
+            tvSpeed.text = "${currentSpeed}x"
+            Toast.makeText(this, "Speed: ${currentSpeed}x", Toast.LENGTH_SHORT).show()
+        }
+
+        // 5. Fit / Fill Screen Mode
+        btnResize.setOnClickListener {
+            resizeMode = if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
+                AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            } else {
+                AspectRatioFrameLayout.RESIZE_MODE_FIT
+            }
+            playerView.resizeMode = resizeMode
+            val modeText = if(resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) "Fit to Screen" else "Zoom to Fill"
+            Toast.makeText(this, modeText, Toast.LENGTH_SHORT).show()
+        }
+
+        // 6. Screen Lock Button
+        btnLock.setOnClickListener {
+            isLocked = !isLocked
+            if(isLocked) {
+                Toast.makeText(this, "Screen Locked \uD83D\uDD12", Toast.LENGTH_SHORT).show()
+                // Lock hone par baaki sab chupa do
+                playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.INVISIBLE
+                playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.INVISIBLE
+                playerView.findViewById<View>(R.id.btnMute).visibility = View.INVISIBLE
+                playerView.findViewById<View>(R.id.btnCut).visibility = View.INVISIBLE
+                playerView.findViewById<View>(R.id.btnScreenshot).visibility = View.INVISIBLE
+            } else {
+                Toast.makeText(this, "Screen Unlocked \uD83D\uDD13", Toast.LENGTH_SHORT).show()
+                // Unlock par wapas dikha do
+                playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.VISIBLE
+                playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.VISIBLE
+                playerView.findViewById<View>(R.id.btnMute).visibility = View.VISIBLE
+                playerView.findViewById<View>(R.id.btnCut).visibility = View.VISIBLE
+                playerView.findViewById<View>(R.id.btnScreenshot).visibility = View.VISIBLE
+            }
+        }
+
+        // Ye buttons agle step (Settings Pop-up) mein banenge!
+        playerView.findViewById<ImageButton>(R.id.btnMoreSettings).setOnClickListener { 
+            Toast.makeText(this, "Advanced Settings Menu Coming in Next Step!", Toast.LENGTH_LONG).show() 
+        }
+        playerView.findViewById<ImageButton>(R.id.btnAudioTrack).setOnClickListener { 
+            Toast.makeText(this, "Audio Track Selection Coming Soon!", Toast.LENGTH_SHORT).show() 
+        }
+        playerView.findViewById<ImageButton>(R.id.btnCut).setOnClickListener { 
+            Toast.makeText(this, "Video Cutter Coming Soon!", Toast.LENGTH_SHORT).show() 
+        }
+        playerView.findViewById<ImageButton>(R.id.btnScreenshot).setOnClickListener { 
+            Toast.makeText(this, "Screenshot Captured!", Toast.LENGTH_SHORT).show() 
         }
     }
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAudioOnlyMode) {
-            val params = PictureInPictureParams.Builder()
-                .setAspectRatio(Rational(16, 9))
-                .build()
-            enterPictureInPictureMode(params)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
         }
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         playerView.useController = !isInPictureInPictureMode
-        // PiP mode me button chupa do
-        btnAudioOnly.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
     }
 
     override fun onStop() {
@@ -145,11 +226,10 @@ class PlayerActivity : AppCompatActivity() {
     private fun setupGestures() {
         scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                if (isAudioOnlyMode) return false // Audio mode me zoom band kar do
+                if (isLocked) return false // Screen lock par zoom band
                 
                 scaleFactor *= detector.scaleFactor
                 scaleFactor = max(1.0f, min(scaleFactor, 6.0f)) 
-                
                 val contentFrame = playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)
                 contentFrame?.scaleX = scaleFactor
                 contentFrame?.scaleY = scaleFactor
@@ -158,8 +238,8 @@ class PlayerActivity : AppCompatActivity() {
         })
 
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            
             override fun onDoubleTap(e: MotionEvent): Boolean {
+                if (isLocked) return false // Screen lock par tap band
                 player?.let {
                     if (it.isPlaying) it.pause() else it.play()
                 }
@@ -167,11 +247,13 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             override fun onLongPress(e: MotionEvent) {
+                if (isLocked) return // Screen lock par Equalizer band
                 openEqualizer()
             }
 
             override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-                if (e1 == null) return false
+                if (isLocked || e1 == null) return false // Screen lock par Volume/Brightness swipe band
+                
                 val screenWidth = resources.displayMetrics.widthPixels
                 val isRightSide = e1.x > (screenWidth / 2)
 
