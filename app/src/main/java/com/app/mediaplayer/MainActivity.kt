@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -21,9 +22,9 @@ class MainActivity : AppCompatActivity() {
     private val videoList = mutableListOf<MediaItem>()
     private val audioList = mutableListOf<MediaItem>()
     private lateinit var recyclerView: RecyclerView
-    private lateinit var settingsLayout: LinearLayout
-    private lateinit var tvHeader: TextView
+    private lateinit var settingsLayout: ScrollView
     private lateinit var bottomNav: BottomNavigationView
+    private lateinit var subTabs: LinearLayout
 
     companion object {
         var currentMediaList: List<MediaItem> = emptyList()
@@ -35,31 +36,30 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerView)
         settingsLayout = findViewById(R.id.settingsLayout)
-        tvHeader = findViewById(R.id.tvHeader)
         bottomNav = findViewById(R.id.bottomNav)
+        subTabs = findViewById(R.id.subTabs)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Niche wale buttons ka logic
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_video -> {
-                    tvHeader.text = "Videos"
                     recyclerView.visibility = View.VISIBLE
+                    subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
                     updateList(true)
                     true
                 }
                 R.id.nav_music -> {
-                    tvHeader.text = "Music"
                     recyclerView.visibility = View.VISIBLE
+                    subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
                     updateList(false)
                     true
                 }
                 R.id.nav_settings -> {
-                    tvHeader.text = "Me"
                     recyclerView.visibility = View.GONE
+                    subTabs.visibility = View.GONE
                     settingsLayout.visibility = View.VISIBLE
                     true
                 }
@@ -102,7 +102,6 @@ class MainActivity : AppCompatActivity() {
         videoList.clear()
         audioList.clear()
 
-        // Video scan
         val videoProjection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION)
         contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
@@ -111,11 +110,10 @@ class MainActivity : AppCompatActivity() {
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
 
             while (cursor.moveToNext()) {
-                videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown Video", cursor.getString(pathCol), cursor.getLong(durationCol), true))
+                videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), cursor.getLong(durationCol), true))
             }
         }
 
-        // Audio scan
         val audioProjection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DURATION)
         contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audioProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
@@ -124,11 +122,10 @@ class MainActivity : AppCompatActivity() {
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
 
             while (cursor.moveToNext()) {
-                audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown Audio", cursor.getString(pathCol), cursor.getLong(durationCol), false))
+                audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), cursor.getLong(durationCol), false))
             }
         }
 
-        // By default Video wala tab select ho
         bottomNav.selectedItemId = R.id.nav_video
     }
 
