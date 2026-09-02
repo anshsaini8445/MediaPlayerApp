@@ -3,66 +3,215 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212">
+    android:background="#0A0A0A"> <!-- Pure Dark Background -->
 
-    <!-- Upar ka Header -->
-    <TextView
-        android:id="@+id/tvHeader"
+    <!-- Top Header (MAX Player Style) -->
+    <RelativeLayout
+        android:id="@+id/topHeader"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="Offline Media"
-        android:textColor="#00E676"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:background="#1E1E1E"/>
+        android:layout_height="60dp"
+        android:background="#141518"
+        android:paddingHorizontal="16dp"
+        android:elevation="4dp">
 
-    <!-- List (Videos & Music yahan dikhenge) -->
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="MAX Player"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- PRO VIP Badge -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/tvHeaderTitle"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/ic_launcher_background"
+            android:backgroundTint="#FFB300"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="PRO"
+            android:textColor="#000000"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal">
+
+            <!-- Search Icon -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔍"
+                android:textSize="20sp"
+                android:layout_marginEnd="16dp"/>
+
+            <TextView
+                android:id="@+id/btnViewToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="☷"
+                android:textSize="22sp"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Sub-tabs (Videos, Folders, Playlists) -->
+    <LinearLayout
+        android:id="@+id/subTabs"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@id/topHeader"
+        android:orientation="horizontal"
+        android:background="#141518"
+        android:paddingHorizontal="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Active Tab (MX Player Blue Color) -->
+        <TextView
+            android:id="@+id/tabVideo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Videos"
+            android:textColor="#2196F3"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="24dp"/>
+
+        <TextView
+            android:id="@+id/tabFolder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Folders"
+            android:textColor="#AAAAAA"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="24dp"/>
+
+        <TextView
+            android:id="@+id/tabPlaylist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Playlists"
+            android:textColor="#AAAAAA"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tvHeader"
+        android:layout_below="@id/subTabs"
         android:layout_above="@id/bottomNav"
-        android:padding="4dp" />
+        android:padding="8dp"
+        android:clipToPadding="false" />
 
-    <!-- Settings wala section (Jo Me pe click karne par dikhega) -->
-    <LinearLayout
+    <!-- ME / PRO Settings Section -->
+    <ScrollView
         android:id="@+id/settingsLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tvHeader"
+        android:layout_below="@id/topHeader"
         android:layout_above="@id/bottomNav"
-        android:orientation="vertical"
-        android:gravity="center"
+        android:background="#0A0A0A"
         android:visibility="gone">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="⚙️ Settings &amp; Themes"
-            android:textColor="#FFFFFF"
-            android:textSize="24sp"
-            android:textStyle="bold"/>
-            
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Coming Soon: Video to Audio Converter &amp; Themes"
-            android:textColor="#AAAAAA"
-            android:textSize="14sp"/>
-    </LinearLayout>
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <!-- Niche wala Menu (Playit Jaisa) -->
+            <!-- Golden PRO Banner -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="110dp"
+                android:background="#FFB300"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp"
+                android:elevation="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👑 MAX Player PRO"
+                    android:textColor="#000000"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ad-free playback &amp; Premium tools"
+                    android:textColor="#333333"
+                    android:textSize="13sp"
+                    android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp"
+                android:weightSum="3">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="🎧" android:textSize="28sp" android:gravity="center" android:background="#1E1E1E"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="MP3 Converter" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="8dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="🎨" android:textSize="28sp" android:gravity="center" android:background="#1E1E1E"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Themes" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="8dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="🔒" android:textSize="28sp" android:gravity="center" android:background="#1E1E1E"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Privacy Folder" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="8dp"/>
+                </LinearLayout>
+            </LinearLayout>
+            
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="⚙️ App Settings" android:textColor="#FFFFFF" android:textSize="16sp" android:padding="16dp" android:background="#141518" android:layout_marginBottom="4dp"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🎛️ Equalizer" android:textColor="#FFFFFF" android:textSize="16sp" android:padding="16dp" android:background="#141518" android:layout_marginBottom="4dp"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🗑️ Recycle Bin" android:textColor="#FFFFFF" android:textSize="16sp" android:padding="16dp" android:background="#141518" android:layout_marginBottom="4dp"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="💬 Help &amp; Feedback" android:textColor="#FFFFFF" android:textSize="16sp" android:padding="16dp" android:background="#141518"/>
+
+        </LinearLayout>
+    </ScrollView>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#1E1E1E"
-        app:itemIconTint="#00E676"
-        app:itemTextColor="#00E676"
+        android:background="#141518"
+        app:itemIconTint="#2196F3" 
+        app:itemTextColor="#2196F3"
         app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>
