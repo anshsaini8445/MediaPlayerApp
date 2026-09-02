@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/imgThumbnailGrid"
-            android:layout_padding="12dp"
+            android:padding="12dp"
             android:layout_margin="8dp"
             android:ellipsize="end"
             android:maxLines="2"
