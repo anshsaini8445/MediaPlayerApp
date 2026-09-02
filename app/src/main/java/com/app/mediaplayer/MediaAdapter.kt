@@ -11,41 +11,67 @@ import java.util.Locale
 
 class MediaAdapter(
     private val items: List<MediaItem>,
+    private val isGrid: Boolean = false, // Pata lagane ke liye ki Grid hai ya nahi
     private val onClick: (MediaItem) -> Unit
-) : RecyclerView.Adapter<MediaAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    private val VIEW_TYPE_LIST = 1
+    private val VIEW_TYPE_GRID = 2
+
+    // List Wala Design
+    class ListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(R.id.tvTitle)
         val duration: TextView = view.findViewById(R.id.tvDuration)
         val thumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_media, parent, false)
-        return ViewHolder(view)
+    // Grid (Naya) Wala Design
+    class GridViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val title: TextView = view.findViewById(R.id.tvTitleGrid)
+        val duration: TextView = view.findViewById(R.id.tvDurationGrid)
+        val thumbnail: ImageView = view.findViewById(R.id.imgThumbnailGrid)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position]
-        holder.title.text = item.title
+    override fun getItemViewType(position: Int): Int {
+        return if (isGrid) VIEW_TYPE_GRID else VIEW_TYPE_LIST
+    }
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == VIEW_TYPE_GRID) {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_media_grid, parent, false)
+            GridViewHolder(view)
+        } else {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_media, parent, false)
+            ListViewHolder(view)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val item = items[position]
+        
         val minutes = (item.duration / 1000) / 60
         val seconds = (item.duration / 1000) % 60
-        holder.duration.text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        val timeStr = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
 
-        // Glide se video ka thumbnail load karna
-        if (item.isVideo) {
-            Glide.with(holder.itemView.context)
-                .load(item.path)
-                .centerCrop()
-                .placeholder(android.R.color.darker_gray) // Error fixed here!
-                .into(holder.thumbnail)
-        } else {
-            // Audio ke liye default play icon
-            holder.thumbnail.setImageResource(android.R.drawable.ic_media_play)
+        if (holder is ListViewHolder) {
+            holder.title.text = item.title
+            holder.duration.text = timeStr
+            if (item.isVideo) {
+                Glide.with(holder.itemView.context).load(item.path).centerCrop().into(holder.thumbnail)
+            } else {
+                holder.thumbnail.setImageResource(android.R.drawable.ic_media_play)
+            }
+            holder.itemView.setOnClickListener { onClick(item) }
+        } else if (holder is GridViewHolder) {
+            holder.title.text = item.title
+            holder.duration.text = timeStr
+            if (item.isVideo) {
+                Glide.with(holder.itemView.context).load(item.path).centerCrop().into(holder.thumbnail)
+            } else {
+                holder.thumbnail.setImageResource(android.R.drawable.ic_media_play)
+            }
+            holder.itemView.setOnClickListener { onClick(item) }
         }
-
-        holder.itemView.setOnClickListener { onClick(item) }
     }
 
     override fun getItemCount() = items.size
