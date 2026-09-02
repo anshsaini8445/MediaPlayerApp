@@ -24,15 +24,14 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <!-- PRO VIP Badge -->
+        <!-- PRO VIP Badge - Error Fixed Here -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/tvHeaderTitle"
             android:layout_centerVertical="true"
             android:layout_marginStart="6dp"
-            android:background="@drawable/ic_launcher_background"
-            android:backgroundTint="#FFB300"
+            android:background="#FFB300"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
             android:text="PRO"
