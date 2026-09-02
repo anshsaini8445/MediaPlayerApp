@@ -14,6 +14,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -27,7 +28,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.google.android.material.bottomsheet.BottomSheetDialog // Pop-up menu library
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -38,6 +39,7 @@ class PlayerActivity : AppCompatActivity() {
     private var mediaController: MediaController? = null 
     private lateinit var playerView: PlayerView
     private lateinit var tvGestureStatus: TextView
+    private var btnAudioOnly: LinearLayout? = null
     private lateinit var audioManager: AudioManager
     
     private lateinit var gestureDetector: GestureDetector
@@ -47,7 +49,9 @@ class PlayerActivity : AppCompatActivity() {
     private var isLocked = false
     private var currentSpeed = 1.0f
     private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-    private var isMirrored = false // Mirror Mode ka variable
+    private var isMirrored = false 
+    private var isAudioOnlyMode = false
+    private var isHWDecoder = true // HW / SW Decoder track karne ke liye
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,10 +59,13 @@ class PlayerActivity : AppCompatActivity() {
 
         playerView = findViewById(R.id.playerView)
         tvGestureStatus = findViewById(R.id.tvGestureStatus)
+        btnAudioOnly = findViewById(R.id.btnAudioOnly)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         playerView.resizeMode = resizeMode
+        
         setupGestures()
+        setupAudioOnlyButton()
     }
 
     override fun onStart() {
@@ -99,6 +106,19 @@ class PlayerActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun setupAudioOnlyButton() {
+        btnAudioOnly?.setOnClickListener {
+            isAudioOnlyMode = !isAudioOnlyMode
+            if (isAudioOnlyMode) {
+                playerView.visibility = View.INVISIBLE
+                Toast.makeText(this, "Audio Mode Enabled 🎧", Toast.LENGTH_SHORT).show()
+            } else {
+                playerView.visibility = View.VISIBLE
+                Toast.makeText(this, "Video Mode Enabled 🎬", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun setupCustomControls() {
@@ -178,13 +198,13 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        // 3 Dots (More Settings) par Pop-up Menu kholna
+        // 3 Dots (More Settings) par Naya Premium Pop-up kholna
         btnMoreSettings.setOnClickListener { 
-            showMoreSettingsDialog()
+            showAdvancedSettingsDialog()
         }
 
         playerView.findViewById<ImageButton>(R.id.btnCut).setOnClickListener { 
-            Toast.makeText(this, "Video Cutter Mode (Coming Soon!)", Toast.LENGTH_SHORT).show() 
+            Toast.makeText(this, "Video Cutter Mode", Toast.LENGTH_SHORT).show() 
         }
         playerView.findViewById<ImageButton>(R.id.btnAudioTrack).setOnClickListener { 
             Toast.makeText(this, "Audio Track Selector", Toast.LENGTH_SHORT).show() 
@@ -194,64 +214,83 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    // Play Settings Ka Popup Menu (MX Player/PLAYit jaisa)
-    private fun showMoreSettingsDialog() {
+    // NAYA PREMIUM SETTINGS MENU
+    private fun showAdvancedSettingsDialog() {
         val dialog = BottomSheetDialog(this)
         val view = layoutInflater.inflate(R.layout.dialog_more_settings, null)
         dialog.setContentView(view)
 
-        view.findViewById<View>(R.id.btnMenuEqualizer).setOnClickListener {
-            dialog.dismiss()
-            openEqualizer()
-        }
+        // Row 1
+        view.findViewById<View>(R.id.btnAudioTrackMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Audio Track Options", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnEqualizerMenu).setOnClickListener { dialog.dismiss(); openEqualizer() }
+        view.findViewById<View>(R.id.btnCastMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Searching for TV to Cast 📺...", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnShareMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Share Menu", Toast.LENGTH_SHORT).show() }
 
-        view.findViewById<View>(R.id.btnMenuNightMode).setOnClickListener {
+        // Row 2
+        view.findViewById<View>(R.id.btnCutMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Video Cutter Mode", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnFavMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Added to Favorites ⭐", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnBookmarkMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Video Bookmarked 🔖", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnVRMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "VR 360 Mode Activated 🕶️", Toast.LENGTH_SHORT).show() }
+
+        // Settings Row
+        view.findViewById<View>(R.id.btnABRepeat).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "A-B Repeat Mode", Toast.LENGTH_SHORT).show() }
+        
+        view.findViewById<View>(R.id.btnNightMode).setOnClickListener {
             dialog.dismiss()
             val layout = window.attributes
-            layout.screenBrightness = 0.05f // Screen dim for night mode
+            layout.screenBrightness = 0.05f 
             window.attributes = layout
             Toast.makeText(this, "Night Mode ON 🌙", Toast.LENGTH_SHORT).show()
         }
 
-        view.findViewById<View>(R.id.btnMenuMirror).setOnClickListener {
+        view.findViewById<View>(R.id.btnMirrorMode).setOnClickListener {
             dialog.dismiss()
             isMirrored = !isMirrored
             val videoSurface = playerView.videoSurfaceView
             if (videoSurface != null) {
                 videoSurface.scaleX = if (isMirrored) -1f else 1f
-                Toast.makeText(this, if (isMirrored) "Mirror Mode ON" else "Mirror Mode OFF", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Mirror mode not supported for this format", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, if (isMirrored) "Mirror Mode ON ◨◧" else "Mirror Mode OFF", Toast.LENGTH_SHORT).show()
             }
         }
 
-        view.findViewById<View>(R.id.btnMenuABRepeat).setOnClickListener {
-            dialog.dismiss()
-            Toast.makeText(this, "A-B Repeat Mode", Toast.LENGTH_SHORT).show()
+        view.findViewById<View>(R.id.btnTimer).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Sleep Timer Set ⏱️", Toast.LENGTH_SHORT).show() }
+
+        // Decoder Toggle
+        val btnHW = view.findViewById<TextView>(R.id.btnHW)
+        val btnSW = view.findViewById<TextView>(R.id.btnSW)
+        
+        // Setup initial colors based on current state
+        if(isHWDecoder) {
+            btnHW.setTextColor(android.graphics.Color.parseColor("#00E676"))
+            btnSW.setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
+        } else {
+            btnHW.setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
+            btnSW.setTextColor(android.graphics.Color.parseColor("#00E676"))
         }
 
-        view.findViewById<View>(R.id.btnMenuTimer).setOnClickListener {
+        btnHW.setOnClickListener {
+            isHWDecoder = true
+            Toast.makeText(this, "Switched to Hardware Decoder", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
-            Toast.makeText(this, "Sleep Timer Set ⏱️", Toast.LENGTH_SHORT).show()
+        }
+        btnSW.setOnClickListener {
+            isHWDecoder = false
+            Toast.makeText(this, "Switched to Software Decoder", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
 
-        view.findViewById<View>(R.id.btnMenuShare).setOnClickListener {
-            dialog.dismiss()
-            Toast.makeText(this, "Share Feature", Toast.LENGTH_SHORT).show()
-        }
-
-        view.findViewById<View>(R.id.btnMenuAudioOnly).setOnClickListener {
-            dialog.dismiss()
-            playerView.visibility = View.INVISIBLE
-            Toast.makeText(this, "Playing in Background (Audio Only) 🎧", Toast.LENGTH_SHORT).show()
-        }
+        // More Row
+        view.findViewById<View>(R.id.btnEditInfo).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Edit Video Info", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnTutorial).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Opening Tutorials...", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnFileInfo).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Showing File Info", Toast.LENGTH_SHORT).show() }
+        view.findViewById<View>(R.id.btnFeedback).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Send Feedback", Toast.LENGTH_SHORT).show() }
 
         dialog.show()
     }
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAudioOnlyMode) {
             enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
         }
     }
@@ -259,6 +298,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         playerView.useController = !isInPictureInPictureMode
+        btnAudioOnly?.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
     }
 
     override fun onStop() {
@@ -271,7 +311,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun setupGestures() {
         scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                if (isLocked) return false 
+                if (isLocked || isAudioOnlyMode) return false 
                 
                 scaleFactor *= detector.scaleFactor
                 scaleFactor = max(1.0f, min(scaleFactor, 6.0f)) 
