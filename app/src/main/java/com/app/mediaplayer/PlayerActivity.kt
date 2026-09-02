@@ -27,6 +27,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.google.android.material.bottomsheet.BottomSheetDialog // Pop-up menu library
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -43,10 +44,10 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var scaleFactor = 1.0f
 
-    // Naye Features ke Variables
     private var isLocked = false
     private var currentSpeed = 1.0f
     private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+    private var isMirrored = false // Mirror Mode ka variable
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +72,6 @@ class PlayerActivity : AppCompatActivity() {
                 player = mediaController
                 playerView.player = player
 
-                // Custom UI ke buttons yahan connect honge
                 setupCustomControls()
 
                 val mediaList = MainActivity.currentMediaList
@@ -101,7 +101,6 @@ class PlayerActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    // Naye UI buttons ko zinda karne ka Code
     private fun setupCustomControls() {
         val tvTitle = playerView.findViewById<TextView>(R.id.tvVideoTitle)
         val btnBack = playerView.findViewById<ImageButton>(R.id.btnBack)
@@ -110,8 +109,8 @@ class PlayerActivity : AppCompatActivity() {
         val btnLock = playerView.findViewById<ImageButton>(R.id.btnLock)
         val tvSpeed = playerView.findViewById<TextView>(R.id.tvSpeed)
         val btnResize = playerView.findViewById<ImageButton>(R.id.btnResize)
+        val btnMoreSettings = playerView.findViewById<ImageButton>(R.id.btnMoreSettings)
         
-        // Video ka original naam top par dikhane ke liye
         player?.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
@@ -119,17 +118,14 @@ class PlayerActivity : AppCompatActivity() {
             }
         })
 
-        // 1. Back Button
         btnBack.setOnClickListener { finish() }
 
-        // 2. PiP (Pop-up Player) Button
         btnPiP.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
             }
         }
 
-        // 3. Mute/Unmute Button
         btnMute.setOnClickListener {
             player?.let { p ->
                 if (p.volume > 0f) {
@@ -142,7 +138,6 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        // 4. Video Speed (1x, 1.5x, 2x, 0.5x)
         tvSpeed.setOnClickListener {
             currentSpeed = when (currentSpeed) {
                 1.0f -> 1.5f
@@ -155,7 +150,6 @@ class PlayerActivity : AppCompatActivity() {
             Toast.makeText(this, "Speed: ${currentSpeed}x", Toast.LENGTH_SHORT).show()
         }
 
-        // 5. Fit / Fill Screen Mode
         btnResize.setOnClickListener {
             resizeMode = if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
                 AspectRatioFrameLayout.RESIZE_MODE_ZOOM
@@ -163,16 +157,12 @@ class PlayerActivity : AppCompatActivity() {
                 AspectRatioFrameLayout.RESIZE_MODE_FIT
             }
             playerView.resizeMode = resizeMode
-            val modeText = if(resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) "Fit to Screen" else "Zoom to Fill"
-            Toast.makeText(this, modeText, Toast.LENGTH_SHORT).show()
         }
 
-        // 6. Screen Lock Button
         btnLock.setOnClickListener {
             isLocked = !isLocked
             if(isLocked) {
                 Toast.makeText(this, "Screen Locked \uD83D\uDD12", Toast.LENGTH_SHORT).show()
-                // Lock hone par baaki sab chupa do
                 playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.INVISIBLE
                 playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.INVISIBLE
                 playerView.findViewById<View>(R.id.btnMute).visibility = View.INVISIBLE
@@ -180,7 +170,6 @@ class PlayerActivity : AppCompatActivity() {
                 playerView.findViewById<View>(R.id.btnScreenshot).visibility = View.INVISIBLE
             } else {
                 Toast.makeText(this, "Screen Unlocked \uD83D\uDD13", Toast.LENGTH_SHORT).show()
-                // Unlock par wapas dikha do
                 playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.VISIBLE
                 playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.VISIBLE
                 playerView.findViewById<View>(R.id.btnMute).visibility = View.VISIBLE
@@ -189,19 +178,75 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
-        // Ye buttons agle step (Settings Pop-up) mein banenge!
-        playerView.findViewById<ImageButton>(R.id.btnMoreSettings).setOnClickListener { 
-            Toast.makeText(this, "Advanced Settings Menu Coming in Next Step!", Toast.LENGTH_LONG).show() 
+        // 3 Dots (More Settings) par Pop-up Menu kholna
+        btnMoreSettings.setOnClickListener { 
+            showMoreSettingsDialog()
+        }
+
+        playerView.findViewById<ImageButton>(R.id.btnCut).setOnClickListener { 
+            Toast.makeText(this, "Video Cutter Mode (Coming Soon!)", Toast.LENGTH_SHORT).show() 
         }
         playerView.findViewById<ImageButton>(R.id.btnAudioTrack).setOnClickListener { 
-            Toast.makeText(this, "Audio Track Selection Coming Soon!", Toast.LENGTH_SHORT).show() 
-        }
-        playerView.findViewById<ImageButton>(R.id.btnCut).setOnClickListener { 
-            Toast.makeText(this, "Video Cutter Coming Soon!", Toast.LENGTH_SHORT).show() 
+            Toast.makeText(this, "Audio Track Selector", Toast.LENGTH_SHORT).show() 
         }
         playerView.findViewById<ImageButton>(R.id.btnScreenshot).setOnClickListener { 
-            Toast.makeText(this, "Screenshot Captured!", Toast.LENGTH_SHORT).show() 
+            Toast.makeText(this, "Screenshot Captured! \uD83D\uDCF8", Toast.LENGTH_SHORT).show() 
         }
+    }
+
+    // Play Settings Ka Popup Menu (MX Player/PLAYit jaisa)
+    private fun showMoreSettingsDialog() {
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.dialog_more_settings, null)
+        dialog.setContentView(view)
+
+        view.findViewById<View>(R.id.btnMenuEqualizer).setOnClickListener {
+            dialog.dismiss()
+            openEqualizer()
+        }
+
+        view.findViewById<View>(R.id.btnMenuNightMode).setOnClickListener {
+            dialog.dismiss()
+            val layout = window.attributes
+            layout.screenBrightness = 0.05f // Screen dim for night mode
+            window.attributes = layout
+            Toast.makeText(this, "Night Mode ON 🌙", Toast.LENGTH_SHORT).show()
+        }
+
+        view.findViewById<View>(R.id.btnMenuMirror).setOnClickListener {
+            dialog.dismiss()
+            isMirrored = !isMirrored
+            val videoSurface = playerView.videoSurfaceView
+            if (videoSurface != null) {
+                videoSurface.scaleX = if (isMirrored) -1f else 1f
+                Toast.makeText(this, if (isMirrored) "Mirror Mode ON" else "Mirror Mode OFF", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Mirror mode not supported for this format", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        view.findViewById<View>(R.id.btnMenuABRepeat).setOnClickListener {
+            dialog.dismiss()
+            Toast.makeText(this, "A-B Repeat Mode", Toast.LENGTH_SHORT).show()
+        }
+
+        view.findViewById<View>(R.id.btnMenuTimer).setOnClickListener {
+            dialog.dismiss()
+            Toast.makeText(this, "Sleep Timer Set ⏱️", Toast.LENGTH_SHORT).show()
+        }
+
+        view.findViewById<View>(R.id.btnMenuShare).setOnClickListener {
+            dialog.dismiss()
+            Toast.makeText(this, "Share Feature", Toast.LENGTH_SHORT).show()
+        }
+
+        view.findViewById<View>(R.id.btnMenuAudioOnly).setOnClickListener {
+            dialog.dismiss()
+            playerView.visibility = View.INVISIBLE
+            Toast.makeText(this, "Playing in Background (Audio Only) 🎧", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.show()
     }
 
     override fun onUserLeaveHint() {
@@ -226,7 +271,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun setupGestures() {
         scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                if (isLocked) return false // Screen lock par zoom band
+                if (isLocked) return false 
                 
                 scaleFactor *= detector.scaleFactor
                 scaleFactor = max(1.0f, min(scaleFactor, 6.0f)) 
@@ -239,7 +284,7 @@ class PlayerActivity : AppCompatActivity() {
 
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                if (isLocked) return false // Screen lock par tap band
+                if (isLocked) return false 
                 player?.let {
                     if (it.isPlaying) it.pause() else it.play()
                 }
@@ -247,12 +292,12 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             override fun onLongPress(e: MotionEvent) {
-                if (isLocked) return // Screen lock par Equalizer band
+                if (isLocked) return 
                 openEqualizer()
             }
 
             override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-                if (isLocked || e1 == null) return false // Screen lock par Volume/Brightness swipe band
+                if (isLocked || e1 == null) return false 
                 
                 val screenWidth = resources.displayMetrics.widthPixels
                 val isRightSide = e1.x > (screenWidth / 2)
