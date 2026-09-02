@@ -5,18 +5,38 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    
-    <path android:pathData="M0,0h108v108h-108z">
-        <aapt:attr name="android:fillColor">
+
+    <!-- Chamakti hui Multi-color Outer Ring -->
+    <path
+        android:strokeWidth="4"
+        android:pathData="M 54 20 A 34 34 0 1 0 54 88 A 34 34 0 1 0 54 20 Z">
+        <aapt:attr name="android:strokeColor">
             <gradient
-                android:startX="0" android:startY="0"
-                android:endX="108" android:endY="108"
+                android:startX="20" android:startY="20"
+                android:endX="88" android:endY="88"
                 android:type="linear">
-                <!-- Behad Colorful Theme: Hot Pink se Neon Cyan tak -->
-                <item android:offset="0.0" android:color="#FF007F" /> 
-                <item android:offset="0.5" android:color="#7F00FF" /> 
-                <item android:offset="1.0" android:color="#00E5FF" /> 
+                <item android:offset="0.0" android:color="#FFF176" />
+                <item android:offset="1.0" android:color="#64FFDA" />
             </gradient>
         </aapt:attr>
     </path>
+
+    <!-- 3D Silver/White Rounded Play Button -->
+    <path
+        android:pathData="M 42 34 L 72 50 C 76 52 76 56 72 58 L 42 74 C 38 76 34 74 34 70 L 34 38 C 34 34 38 32 42 34 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="34" android:startY="34"
+                android:endX="72" android:endY="74"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFFFFF" />
+                <item android:offset="1.0" android:color="#D7D7D7" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Button ko 3D Glass Look dene ke liye shadow effect -->
+    <path
+        android:pathData="M 42 34 L 72 50 C 76 52 76 56 72 58 L 42 74 Z"
+        android:fillColor="#44FFFFFF" />
 </vector>
