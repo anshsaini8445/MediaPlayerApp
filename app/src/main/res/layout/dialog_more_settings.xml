@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#141518"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Play settings"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- Pehli Line (Row 1) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:layout_marginBottom="24dp">
+        
+        <!-- Equalizer -->
+        <LinearLayout
+            android:id="@+id/btnMenuEqualizer"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="50dp" android:layout_height="50dp" android:text="🎛️" android:textSize="24sp" android:gravity="center" android:background="#1E1E1E"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Equalizer" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <!-- Night Mode -->
+        <LinearLayout
+            android:id="@+id/btnMenuNightMode"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="50dp" android:layout_height="50dp" android:text="🌙" android:textSize="24sp" android:gravity="center" android:background="#1E1E1E"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Night Mode" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <!-- Mirror Mode -->
+        <LinearLayout
+            android:id="@+id/btnMenuMirror"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="50dp" android:layout_height="50dp" android:text="◨◧" android:textSize="24sp" android:gravity="center" android:background="#1E1E1E"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mirror mode" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <!-- AB Repeat -->
+        <LinearLayout
+            android:id="@+id/btnMenuABRepeat"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="50dp" android:layout_height="50dp" android:text="🔁" android:textSize="24sp" android:gravity="center" android:background="#1E1E1E"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="AB Repeat" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Dusri Line (Row 2) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:layout_marginBottom="16dp">
+        
+        <!-- Timer -->
+        <LinearLayout
+            android:id="@+id/btnMenuTimer"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="50dp" android:layout_height="50dp" android:text="⏱️" android:textSize="24sp" android:gravity="center" android:background="#1E1E1E"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Timer" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <!-- Share -->
+        <LinearLayout
+            android:id="@+id/btnMenuShare"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="50dp" android:layout_height="50dp" android:text="↗️" android:textSize="24sp" android:gravity="center" android:background="#1E1E1E"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Share" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <!-- Audio Only / Background Play -->
+        <LinearLayout
+            android:id="@+id/btnMenuAudioOnly"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="50dp" android:layout_height="50dp" android:text="🎧" android:textSize="24sp" android:gravity="center" android:background="#1E1E1E"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Audio Track" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="8dp"/>
+        </LinearLayout>
+        
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" />
+    </LinearLayout>
+</LinearLayout>
