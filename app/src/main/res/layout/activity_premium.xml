@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#111111"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👑 Upgrade to Premium"
+        android:textColor="#FF9933"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:layout_marginTop="32dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Current Status: 0%"
+        android:textColor="#AAAAAA"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- Plan 1: 1 Month -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1E1E24"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_marginBottom="16dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Minimum Plan (1 Month)" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="₹150" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold" android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <!-- Plan 2: 50 Days -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1E1E24"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_marginBottom="16dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Popular Plan (50 Days)" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="₹250" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold" android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <!-- Plan 3: 1 Year -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#331A00"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_marginBottom="32dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ultimate Plan (1 Year)" android:textColor="#FF671F" android:textSize="18sp" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="₹1225" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold" android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:backgroundTint="#FF671F"
+        android:text="Continue to Payment"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+</LinearLayout>
