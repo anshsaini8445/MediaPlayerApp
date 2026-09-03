@@ -16,7 +16,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <!-- Naya Audio Player Page -->
+        <activity
+            android:name=".PremiumActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <activity
             android:name=".AudioPlayerActivity"
             android:exported="false"
