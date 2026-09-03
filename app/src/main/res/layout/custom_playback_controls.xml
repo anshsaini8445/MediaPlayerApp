@@ -1,228 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#66000000"> <!-- Semi-transparent background when controls show -->
+    android:background="#66000000">
 
-    <!-- ==================== TOP BAR ==================== -->
+    <!-- Top Action Bar (Title & Screenshot) -->
     <LinearLayout
-        android:id="@+id/layoutTopControls"
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:background="#88000000">
 
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_revert"
-            app:tint="#FFFFFF" />
+            android:tint="#FFFFFF"/>
 
         <TextView
             android:id="@+id/tvVideoTitle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:ellipsize="end"
-            android:maxLines="1"
+            android:layout_height="wrap_content"
             android:text="Video Title"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:singleLine="true"
+            android:ellipsize="marquee" />
 
-        <!-- Top Right Icons -->
-        <ImageButton
-            android:id="@+id/btnAudioTrack"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_btn_speak_now"
-            app:tint="#FFFFFF" />
-
-        <ImageButton
-            android:id="@+id/btnPiP"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_always_landscape_portrait"
-            app:tint="#FFFFFF" />
-
-        <ImageButton
-            android:id="@+id/btnMoreSettings"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_more"
-            app:tint="#FFFFFF" />
-    </LinearLayout>
-
-    <!-- ==================== LEFT SIDE BAR (Lock & Mute) ==================== -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:orientation="vertical"
-        android:paddingStart="16dp">
-
-        <ImageButton
-            android:id="@+id/btnMute"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginBottom="24dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_lock_silent_mode_off"
-            app:tint="#FFFFFF" />
-
-        <ImageButton
-            android:id="@+id/btnLock"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_secure"
-            app:tint="#FFFFFF" />
-    </LinearLayout>
-
-    <!-- ==================== RIGHT SIDE BAR (Cut & Screenshot) ==================== -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:orientation="vertical"
-        android:paddingEnd="16dp">
-
-        <ImageButton
-            android:id="@+id/btnCut"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginBottom="24dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_edit"
-            app:tint="#FFFFFF" />
-
+        <!-- NAYA: Screenshot Button 📸 -->
         <ImageButton
             android:id="@+id/btnScreenshot"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_camera"
-            app:tint="#FFFFFF" />
+            android:tint="#00E676" />
     </LinearLayout>
 
-    <!-- ==================== CENTER PLAY/PAUSE ==================== -->
+    <!-- Center Play/Pause Buttons -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center">
 
         <ImageButton
-            android:id="@id/exo_rew"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_rew"
-            app:tint="#FFFFFF" />
-
-        <!-- ExoPlayer ka default play/pause button -->
-        <ImageButton
-            android:id="@id/exo_play_pause"
+            android:id="@+id/exo_prev"
+            style="@style/ExoMediaButton.Previous"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_play"
-            app:tint="#FFFFFF" />
+            android:tint="#FFFFFF" />
 
         <ImageButton
-            android:id="@id/exo_ffwd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_ff"
-            app:tint="#FFFFFF" />
+            android:id="@+id/exo_play_pause"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/ic_launcher_background"
+            android:src="@android:drawable/ic_media_play"
+            android:tint="#FFFFFF"
+            android:layout_marginHorizontal="24dp"/>
+
+        <ImageButton
+            android:id="@+id/exo_next"
+            style="@style/ExoMediaButton.Next"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:tint="#FFFFFF" />
     </LinearLayout>
 
-    <!-- ==================== BOTTOM BAR ==================== -->
-    <RelativeLayout
-        android:id="@+id/layoutBottomControls"
+    <!-- Center Nano-second Time Popup (Swipe karte waqt dikhega) -->
+    <TextView
+        android:id="@+id/tvNanoSecondOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="00:00:00.000"
+        android:textColor="#FFB300"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:background="#88000000"
+        android:padding="16dp"
+        android:visibility="gone" />
+
+    <!-- Bottom Seekbar & Controls -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:background="#88000000"
         android:padding="16dp">
 
-        <TextView
-            android:id="@id/exo_position"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:text="00:00"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-
-        <!-- ExoPlayer default progress bar -->
-        <androidx.media3.ui.DefaultTimeBar
-            android:id="@id/exo_progress"
-            android:layout_width="match_parent"
-            android:layout_height="26dp"
-            android:layout_centerVertical="true"
-            android:layout_toStartOf="@id/exo_duration"
-            android:layout_toEndOf="@id/exo_position"
-            android:layout_marginHorizontal="8dp"
-            app:played_color="#00E676"
-            app:scrubber_color="#FFFFFF"
-            app:unplayed_color="#88FFFFFF" />
-
-        <TextView
-            android:id="@id/exo_duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toStartOf="@id/layoutBottomRightIcons"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="16dp"
-            android:text="00:00"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-
-        <!-- Bottom Right Icons (Speed & Fit/Fill) -->
         <LinearLayout
-            android:id="@+id/layoutBottomRightIcons"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/tvSpeed"
+                android:id="@+id/exo_position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="Speed"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:text="00:00"
+                android:textColor="#FFFFFF" />
 
-            <ImageButton
-                android:id="@+id/btnResize"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_crop"
-                app:tint="#FFFFFF" />
+            <androidx.media3.ui.DefaultTimeBar
+                android:id="@+id/exo_progress"
+                android:layout_width="0dp"
+                android:layout_height="26dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="12dp"/>
+
+            <TextView
+                android:id="@+id/exo_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="#FFFFFF" />
         </LinearLayout>
-    </RelativeLayout>
-
+    </LinearLayout>
 </RelativeLayout>
