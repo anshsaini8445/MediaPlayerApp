@@ -2,7 +2,6 @@ package com.app.mediaplayer
 
 import android.content.ComponentName
 import android.content.Intent
-import android.media.audiofx.AudioEffect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -29,6 +28,10 @@ class AudioPlayerActivity : AppCompatActivity() {
     private lateinit var seekBar: SeekBar
     private lateinit var btnPlayPause: ImageButton
     
+    // NAYA: 3-Tap Logic Variables
+    private var tapCount = 0
+    private var lastTapTime: Long = 0
+    
     private val handler = Handler(Looper.getMainLooper())
     private val updateProgressRunnable = object : Runnable {
         override fun run() {
@@ -52,11 +55,26 @@ class AudioPlayerActivity : AppCompatActivity() {
 
         findViewById<ImageButton>(R.id.btnBackAudio).setOnClickListener { finish() }
         
-        findViewById<TextView>(R.id.btnEqAudio).setOnClickListener { openEqualizer() }
+        findViewById<TextView>(R.id.btnEqAudio).setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
         findViewById<TextView>(R.id.btnShuffleAudio).setOnClickListener { Toast.makeText(this, "Shuffle Mode", Toast.LENGTH_SHORT).show() }
         findViewById<TextView>(R.id.btnTimerAudio).setOnClickListener { Toast.makeText(this, "Sleep Timer Set", Toast.LENGTH_SHORT).show() }
         findViewById<TextView>(R.id.btnRepeatAudio).setOnClickListener { Toast.makeText(this, "Repeat Mode", Toast.LENGTH_SHORT).show() }
         findViewById<TextView>(R.id.btnPlaylistAudio).setOnClickListener { Toast.makeText(this, "Opening Playlist", Toast.LENGTH_SHORT).show() }
+
+        // NAYA: 3-Tap to Premium Logic (Background Image par click karne par)
+        findViewById<androidx.cardview.widget.CardView>(R.id.cardAlbumArt)?.setOnClickListener {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastTapTime < 500) { // Half second gap
+                tapCount++
+                if (tapCount == 3) {
+                    tapCount = 0
+                    startActivity(Intent(this, PremiumActivity::class.java))
+                }
+            } else {
+                tapCount = 1
+            }
+            lastTapTime = currentTime
+        }
     }
 
     override fun onStart() {
@@ -125,15 +143,6 @@ class AudioPlayerActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-    }
-
-    private fun openEqualizer() {
-        val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-            putExtra(AudioEffect.EXTRA_AUDIO_SESSION, 0)
-            putExtra(AudioEffect.EXTRA_PACKAGE_NAME, packageName)
-            putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-        }
-        try { startActivityForResult(intent, 0) } catch (e: Exception) { Toast.makeText(this, "Equalizer not supported", Toast.LENGTH_SHORT).show() }
     }
 
     private fun formatTime(ms: Long): String {
