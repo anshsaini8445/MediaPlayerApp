@@ -3,9 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#111111"> <!-- Premium Black Background -->
+    android:background="#111111">
 
-    <!-- Top Bar -->
     <LinearLayout
         android:id="@+id/topBarAudio"
         android:layout_width="match_parent"
@@ -13,37 +12,13 @@
         android:orientation="horizontal"
         android:padding="16dp"
         android:gravity="center_vertical">
-        <ImageButton
-            android:id="@+id/btnBackAudio"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="#FFFFFF"/>
-        <TextView
-            android:id="@+id/tvAudioTitle"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Song Title"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:singleLine="true"
-            android:ellipsize="marquee"
-            android:marqueeRepeatLimit="marquee_forever"/>
-        <ImageButton
-            android:id="@+id/btnAudioSettings"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_more"
-            app:tint="#FFFFFF"/>
+        <ImageButton android:id="@+id/btnBackAudio" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_menu_revert" app:tint="#FFFFFF"/>
+        <TextView android:id="@+id/tvAudioTitle" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="Song Title" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" android:singleLine="true" android:ellipsize="marquee" android:marqueeRepeatLimit="marquee_forever"/>
+        <ImageButton android:id="@+id/btnAudioSettings" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_menu_more" app:tint="#FFFFFF"/>
     </LinearLayout>
 
-    <!-- Center Album Art (Vinyl Style) -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardAlbumArt" 
         android:layout_width="280dp"
         android:layout_height="280dp"
         android:layout_below="@id/topBarAudio"
@@ -52,94 +27,31 @@
         app:cardCornerRadius="140dp"
         app:cardBackgroundColor="#2A2A30"
         app:cardElevation="10dp">
-        <ImageView
-            android:id="@+id/imgAlbumArt"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_media_play"/>
+        <ImageView android:id="@+id/imgAlbumArt" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:src="@android:drawable/ic_media_play"/>
     </androidx.cardview.widget.CardView>
 
-    <!-- Bottom Controls Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="vertical"
         android:padding="24dp">
-
-        <!-- Extra Tools Row (Equalizer, Shuffle, Timer, Repeat, Playlist) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="5"
-            android:layout_marginBottom="24dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="5" android:layout_marginBottom="24dp">
             <TextView android:id="@+id/btnEqAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="🎛️" android:textSize="22sp" android:gravity="center"/>
             <TextView android:id="@+id/btnShuffleAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="🔀" android:textSize="22sp" android:gravity="center"/>
             <TextView android:id="@+id/btnTimerAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="⏱️" android:textSize="22sp" android:gravity="center"/>
             <TextView android:id="@+id/btnRepeatAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="🔁" android:textSize="22sp" android:gravity="center"/>
             <TextView android:id="@+id/btnPlaylistAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="📋" android:textSize="22sp" android:gravity="center"/>
         </LinearLayout>
-
-        <!-- Progress Bar & Time -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
-            <TextView
-                android:id="@+id/tvAudioCurrent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="00:00"
-                android:textColor="#AAAAAA"/>
-            <SeekBar
-                android:id="@+id/seekAudio"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:progressTint="#FF671F"
-                android:thumbTint="#FF671F"/>
-            <TextView
-                android:id="@+id/tvAudioTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="00:00"
-                android:textColor="#AAAAAA"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
+            <TextView android:id="@+id/tvAudioCurrent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="00:00" android:textColor="#AAAAAA"/>
+            <SeekBar android:id="@+id/seekAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:progressTint="#FF671F" android:thumbTint="#FF671F"/>
+            <TextView android:id="@+id/tvAudioTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="00:00" android:textColor="#AAAAAA"/>
         </LinearLayout>
-
-        <!-- Main Playback Controls -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="8dp">
-            <ImageButton
-                android:id="@+id/btnAudioPrev"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_media_previous"
-                app:tint="#FFFFFF"
-                android:layout_marginEnd="32dp"/>
-            <ImageButton
-                android:id="@+id/btnAudioPlayPause"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:background="@drawable/ic_launcher_background"
-                android:src="@android:drawable/ic_media_play"
-                app:tint="#FFFFFF"/>
-            <ImageButton
-                android:id="@+id/btnAudioNext"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_media_next"
-                app:tint="#FFFFFF"
-                android:layout_marginStart="32dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="8dp">
+            <ImageButton android:id="@+id/btnAudioPrev" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_media_previous" app:tint="#FFFFFF" android:layout_marginEnd="32dp"/>
+            <ImageButton android:id="@+id/btnAudioPlayPause" android:layout_width="72dp" android:layout_height="72dp" android:background="@drawable/ic_launcher_background" android:src="@android:drawable/ic_media_play" app:tint="#FFFFFF"/>
+            <ImageButton android:id="@+id/btnAudioNext" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_media_next" app:tint="#FFFFFF" android:layout_marginStart="32dp"/>
         </LinearLayout>
     </LinearLayout>
 </RelativeLayout>
