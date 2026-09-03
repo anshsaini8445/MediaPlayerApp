@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#0A0A0A"> <!-- Pure Dark Background -->
 
-    <!-- Top Header (MAX Player Style) -->
+    <!-- Top Header -->
     <RelativeLayout
         android:id="@+id/topHeader"
         android:layout_width="match_parent"
@@ -24,7 +24,6 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <!-- PRO VIP Badge - Error Fixed Here -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -46,14 +45,6 @@
             android:layout_centerVertical="true"
             android:orientation="horizontal">
 
-            <!-- Search Icon -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🔍"
-                android:textSize="20sp"
-                android:layout_marginEnd="16dp"/>
-
             <TextView
                 android:id="@+id/btnViewToggle"
                 android:layout_width="wrap_content"
@@ -64,7 +55,7 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Sub-tabs (Videos, Folders, Playlists) -->
+    <!-- Sub-tabs -->
     <LinearLayout
         android:id="@+id/subTabs"
         android:layout_width="match_parent"
@@ -75,7 +66,6 @@
         android:paddingHorizontal="16dp"
         android:gravity="center_vertical">
 
-        <!-- Active Tab (MX Player Blue Color) -->
         <TextView
             android:id="@+id/tabVideo"
             android:layout_width="wrap_content"
@@ -111,7 +101,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/subTabs"
-        android:layout_above="@id/bottomNav"
+        android:layout_above="@id/bottomSearchBar"
         android:padding="8dp"
         android:clipToPadding="false" />
 
@@ -121,7 +111,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/topHeader"
-        android:layout_above="@id/bottomNav"
+        android:layout_above="@id/bottomSearchBar"
         android:background="#0A0A0A"
         android:visibility="gone">
 
@@ -131,7 +121,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Golden PRO Banner -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="110dp"
@@ -202,6 +191,38 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <!-- Niche wala Global Search Bar -->
+    <LinearLayout
+        android:id="@+id/bottomSearchBar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_above="@id/bottomNav"
+        android:background="#191919"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginHorizontal="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔍"
+            android:textSize="18sp"
+            android:layout_marginEnd="12dp" />
+
+        <EditText
+            android:id="@+id/etGlobalSearch"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:hint="Search audio, video..."
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#888888"
+            android:textSize="15sp" />
+    </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
