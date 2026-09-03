@@ -239,9 +239,18 @@ class MainActivity : AppCompatActivity() {
         } else {
             recyclerView.layoutManager = LinearLayoutManager(this)
         }
+        
         recyclerView.adapter = MediaAdapter(itemsToShow, isGridView) { item ->
             currentMediaList = itemsToShow
-            val intent = Intent(this, PlayerActivity::class.java).apply {
+            
+            // YAHAN HAI ASLI LOGIC - Video aur Audio ko alag-alag player par bhejna
+            val targetActivity = if (item.isVideo) {
+                PlayerActivity::class.java // Video Player
+            } else {
+                AudioPlayerActivity::class.java // Naya Audio Player
+            }
+            
+            val intent = Intent(this, targetActivity).apply {
                 putExtra("START_INDEX", itemsToShow.indexOf(item))
             }
             startActivity(intent)
