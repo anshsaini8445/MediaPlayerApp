@@ -25,7 +25,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"/>
 
-    <!-- Plan 1: 1 Month -->
+    <!-- Plan 1 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -37,7 +37,7 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="₹150" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold" android:layout_marginTop="8dp"/>
     </LinearLayout>
 
-    <!-- Plan 2: 50 Days -->
+    <!-- Plan 2 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -49,7 +49,7 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="₹250" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold" android:layout_marginTop="8dp"/>
     </LinearLayout>
 
-    <!-- Plan 3: 1 Year -->
+    <!-- Plan 3 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
