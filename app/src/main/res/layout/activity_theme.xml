@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#111111"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="24dp">
+
+        <ImageButton
+            android:id="@+id/btnThemeBack"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_revert"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎨 Select App Theme"
+            android:textColor="#FF671F"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/themeBhagwa"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="🟧  Bhagwa Orange (Default VIP)"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:background="#1E1E24"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/themeNeon"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="🟦  Cyber Cyan Neon"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:background="#1E1E24"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/themeEmerald"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="🟩  Emerald Green"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:background="#1E1E24"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/themePurple"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="🟪  Sunset Purple"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:background="#1E1E24"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/themeRed"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="🟥  Ruby Red"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:background="#1E1E24"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/themeBlue"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="🟦  Royal Blue"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:background="#1E1E24"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:id="@+id/themeGold"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="🟨  Pitch Gold"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:background="#1E1E24"
+                android:layout_marginBottom="12dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
