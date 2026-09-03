@@ -33,10 +33,11 @@
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true" />
 
-        <!-- Nayi 3 VIP Activities (Sahi Jagah Par) -->
+        <!-- Saari VIP Activities Sahi Jagah Par -->
         <activity android:name=".VaultActivity" android:screenOrientation="portrait" />
         <activity android:name=".EqualizerActivity" android:screenOrientation="portrait" />
         <activity android:name=".ThemeActivity" android:screenOrientation="portrait" />
+        <activity android:name=".RecycleBinActivity" android:screenOrientation="portrait" />
 
         <activity
             android:name=".MainActivity"
