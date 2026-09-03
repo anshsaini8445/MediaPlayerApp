@@ -16,16 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <activity
-            android:name=".PremiumActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".AudioPlayerActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
+        <activity android:name=".PremiumActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".AudioPlayerActivity" android:exported="false" android:screenOrientation="portrait" />
+        
         <activity
             android:name=".PlayerActivity"
             android:exported="false"
@@ -33,11 +26,12 @@
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true" />
 
-        <!-- Saari VIP Activities Sahi Jagah Par -->
+        <!-- Saari VIP Activities Yahan Hain -->
         <activity android:name=".VaultActivity" android:screenOrientation="portrait" />
         <activity android:name=".EqualizerActivity" android:screenOrientation="portrait" />
         <activity android:name=".ThemeActivity" android:screenOrientation="portrait" />
         <activity android:name=".RecycleBinActivity" android:screenOrientation="portrait" />
+        <activity android:name=".Mp3ConverterActivity" android:screenOrientation="portrait" />
 
         <activity
             android:name=".MainActivity"
