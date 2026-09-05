@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         setupTopTabs()
         setupViewToggle()
-        setupSettingsClicks() 
+        setupSettingsClicks()
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -71,7 +71,8 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar).visibility = View.VISIBLE
+                    val searchBar = findViewById<View>(R.id.bottomSearchBar)
+                    searchBar?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
@@ -82,14 +83,16 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar).visibility = View.VISIBLE
+                    val searchBar = findViewById<View>(R.id.bottomSearchBar)
+                    searchBar?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
                 R.id.nav_settings -> {
                     recyclerView.visibility = View.GONE
                     subTabs.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar).visibility = View.GONE
+                    val searchBar = findViewById<View>(R.id.bottomSearchBar)
+                    searchBar?.visibility = View.GONE
                     settingsLayout.visibility = View.VISIBLE
                     true
                 }
@@ -100,7 +103,6 @@ class MainActivity : AppCompatActivity() {
         checkAndRequestPermissions()
     }
 
-    // CRASH FIX APPLIED HERE
     private fun setupSettingsClicks() {
         val settingsScrollView = findViewById<ScrollView>(R.id.settingsLayout)
         val linearParent = settingsScrollView.getChildAt(0) as LinearLayout
@@ -248,62 +250,11 @@ class MainActivity : AppCompatActivity() {
     private fun showItemsInFolder(itemsToShow: List<MediaItem>) {
         recyclerView.layoutManager = if (isGridView) GridLayoutManager(this, 2) else LinearLayoutManager(this)
         
-        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView, 
-            onClick = { item ->
-                currentMediaList = itemsToShow
-                val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
-                val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
-                startActivity(intent)
-            },
-            onMoreClick = { item ->
-                showMediaOptionsDialog(item)
-            }
-        )
-    }
-
-    private fun showMediaOptionsDialog(item: MediaItem) {
-        val dialog = BottomSheetDialog(this)
-        val view = layoutInflater.inflate(R.layout.dialog_list_menu, null)
-        dialog.setContentView(view)
-
-        view.findViewById<TextView>(R.id.menuMediaTitle).text = item.title
-
-        if (item.isVideo) {
-            view.findViewById<View>(R.id.menuRingtone).visibility = View.GONE
-            view.findViewById<View>(R.id.menuAddToPlaylist).visibility = View.GONE
-        } else {
-            view.findViewById<View>(R.id.menuConvertToMp3).visibility = View.GONE
-            view.findViewById<View>(R.id.menuProperties).visibility = View.GONE
+        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView) { item ->
+            currentMediaList = itemsToShow
+            val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
+            val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
+            startActivity(intent)
         }
-
-        view.findViewById<View>(R.id.menuDelete).setOnClickListener {
-            dialog.dismiss()
-            val mediaType = if (item.isVideo) "video" else "audio"
-            android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("Delete")
-                .setMessage("Want to delete this $mediaType?")
-                .setPositiveButton("Delete") { _, _ ->
-                    android.widget.Toast.makeText(this, "Moved to Recycle Bin 🗑️", android.widget.Toast.LENGTH_SHORT).show()
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
-        }
-
-        view.findViewById<View>(R.id.menuLockVault).setOnClickListener {
-            dialog.dismiss()
-            android.widget.Toast.makeText(this, "Moved to Private Vault 🔒", android.widget.Toast.LENGTH_SHORT).show()
-        }
-
-        view.findViewById<View>(R.id.menuShare).setOnClickListener {
-            dialog.dismiss()
-            android.widget.Toast.makeText(this, "Opening Share Panel...", android.widget.Toast.LENGTH_SHORT).show()
-        }
-        
-        view.findViewById<View>(R.id.menuConvertToMp3).setOnClickListener {
-            dialog.dismiss()
-            startActivity(Intent(this, Mp3ConverterActivity::class.java))
-        }
-
-        dialog.show()
     }
 }
