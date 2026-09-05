@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         setupTopTabs()
         setupViewToggle()
+        setupSettingsClicks() 
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
+                    findViewById<View>(R.id.bottomSearchBar).visibility = View.VISIBLE
                     updateList()
                     true
                 }
@@ -79,12 +82,14 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
+                    findViewById<View>(R.id.bottomSearchBar).visibility = View.VISIBLE
                     updateList()
                     true
                 }
                 R.id.nav_settings -> {
                     recyclerView.visibility = View.GONE
                     subTabs.visibility = View.GONE
+                    findViewById<View>(R.id.bottomSearchBar).visibility = View.GONE
                     settingsLayout.visibility = View.VISIBLE
                     true
                 }
@@ -93,6 +98,28 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkAndRequestPermissions()
+    }
+
+    // CRASH FIX APPLIED HERE
+    private fun setupSettingsClicks() {
+        val settingsScrollView = findViewById<ScrollView>(R.id.settingsLayout)
+        val linearParent = settingsScrollView.getChildAt(0) as LinearLayout
+        
+        linearParent.getChildAt(0).setOnClickListener { 
+             startActivity(Intent(this, PremiumActivity::class.java))
+        }
+
+        val iconsRow = linearParent.getChildAt(1) as LinearLayout
+        
+        iconsRow.getChildAt(0).setOnClickListener { startActivity(Intent(this, Mp3ConverterActivity::class.java)) }
+        iconsRow.getChildAt(1).setOnClickListener { startActivity(Intent(this, ThemeActivity::class.java)) }
+        iconsRow.getChildAt(2).setOnClickListener { startActivity(Intent(this, VaultActivity::class.java)) }
+
+        val tvEq = linearParent.getChildAt(3) 
+        val tvBin = linearParent.getChildAt(4) 
+        
+        tvEq.setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
+        tvBin.setOnClickListener { startActivity(Intent(this, RecycleBinActivity::class.java)) }
     }
 
     private fun resetTabsToDefault() {
@@ -137,11 +164,7 @@ class MainActivity : AppCompatActivity() {
             if (isFolderView) return@setOnClickListener 
             
             isGridView = !isGridView
-            if (isGridView) {
-                btnViewToggle.text = "☰"
-            } else {
-                btnViewToggle.text = "☷"
-            }
+            if (isGridView) btnViewToggle.text = "☰" else btnViewToggle.text = "☷"
             updateList() 
         }
     }
@@ -160,18 +183,13 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
-        if (missing.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 101)
-        } else {
-            scanMedia()
-        }
+        if (missing.isNotEmpty()) ActivityCompat.requestPermissions(this, missing.toTypedArray(), 101)
+        else scanMedia()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults.isNotEmpty()) {
-            scanMedia()
-        }
+        if (grantResults.isNotEmpty()) scanMedia()
     }
 
     private fun scanMedia() {
@@ -201,24 +219,18 @@ class MainActivity : AppCompatActivity() {
                 audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), cursor.getLong(durationCol), false))
             }
         }
-
         bottomNav.selectedItemId = R.id.nav_video
     }
 
     private fun getFolders(items: List<MediaItem>): List<MediaFolder> {
         val grouped = items.groupBy { item ->
-            try {
-                File(item.path).parentFile?.name ?: "Unknown Folder"
-            } catch (e: Exception) {
-                "Unknown Folder"
-            }
+            try { File(item.path).parentFile?.name ?: "Unknown Folder" } catch (e: Exception) { "Unknown Folder" }
         }
         return grouped.map { MediaFolder(it.key, it.value) }.sortedBy { it.name }
     }
 
     private fun updateList() {
         val list = if (isShowingVideos) videoList else audioList
-
         if (isFolderView) {
             val folders = getFolders(list)
             recyclerView.layoutManager = LinearLayoutManager(this)
@@ -234,26 +246,64 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showItemsInFolder(itemsToShow: List<MediaItem>) {
-        if (isGridView) {
-            recyclerView.layoutManager = GridLayoutManager(this, 2)
+        recyclerView.layoutManager = if (isGridView) GridLayoutManager(this, 2) else LinearLayoutManager(this)
+        
+        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView, 
+            onClick = { item ->
+                currentMediaList = itemsToShow
+                val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
+                val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
+                startActivity(intent)
+            },
+            onMoreClick = { item ->
+                showMediaOptionsDialog(item)
+            }
+        )
+    }
+
+    private fun showMediaOptionsDialog(item: MediaItem) {
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.dialog_list_menu, null)
+        dialog.setContentView(view)
+
+        view.findViewById<TextView>(R.id.menuMediaTitle).text = item.title
+
+        if (item.isVideo) {
+            view.findViewById<View>(R.id.menuRingtone).visibility = View.GONE
+            view.findViewById<View>(R.id.menuAddToPlaylist).visibility = View.GONE
         } else {
-            recyclerView.layoutManager = LinearLayoutManager(this)
+            view.findViewById<View>(R.id.menuConvertToMp3).visibility = View.GONE
+            view.findViewById<View>(R.id.menuProperties).visibility = View.GONE
+        }
+
+        view.findViewById<View>(R.id.menuDelete).setOnClickListener {
+            dialog.dismiss()
+            val mediaType = if (item.isVideo) "video" else "audio"
+            android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("Delete")
+                .setMessage("Want to delete this $mediaType?")
+                .setPositiveButton("Delete") { _, _ ->
+                    android.widget.Toast.makeText(this, "Moved to Recycle Bin 🗑️", android.widget.Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        view.findViewById<View>(R.id.menuLockVault).setOnClickListener {
+            dialog.dismiss()
+            android.widget.Toast.makeText(this, "Moved to Private Vault 🔒", android.widget.Toast.LENGTH_SHORT).show()
+        }
+
+        view.findViewById<View>(R.id.menuShare).setOnClickListener {
+            dialog.dismiss()
+            android.widget.Toast.makeText(this, "Opening Share Panel...", android.widget.Toast.LENGTH_SHORT).show()
         }
         
-        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView) { item ->
-            currentMediaList = itemsToShow
-            
-            // YAHAN HAI ASLI LOGIC - Video aur Audio ko alag-alag player par bhejna
-            val targetActivity = if (item.isVideo) {
-                PlayerActivity::class.java // Video Player
-            } else {
-                AudioPlayerActivity::class.java // Naya Audio Player
-            }
-            
-            val intent = Intent(this, targetActivity).apply {
-                putExtra("START_INDEX", itemsToShow.indexOf(item))
-            }
-            startActivity(intent)
+        view.findViewById<View>(R.id.menuConvertToMp3).setOnClickListener {
+            dialog.dismiss()
+            startActivity(Intent(this, Mp3ConverterActivity::class.java))
         }
+
+        dialog.show()
     }
 }
