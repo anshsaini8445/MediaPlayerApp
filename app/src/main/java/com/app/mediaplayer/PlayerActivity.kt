@@ -38,19 +38,18 @@ class PlayerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_player)
         playerView = findViewById(R.id.playerView)
 
+        // 100% Safe Kotlin Type Casting (Isse compilation error nahi aayega)
         val btnBack = playerView.findViewById<ImageButton>(R.id.btnBack)
         btnBack?.setOnClickListener { finish() }
 
         val btnScreenshot = playerView.findViewById<ImageButton>(R.id.btnScreenshot)
         btnScreenshot?.setOnClickListener { ScreenshotHelper.captureFrame(this, playerView) }
 
-        // NAYA: PLAYit Style Menu open karne ka code
         val btnMoreSettings = playerView.findViewById<ImageButton>(R.id.btnMoreSettings)
-        btnMoreSettings?.setOnClickListener {
-            showPlayitStyleMenu()
-        }
+        btnMoreSettings?.setOnClickListener { showPlayitStyleMenu() }
 
-        tvNanoOverlay = playerView.findViewById(R.id.tvNanoSecondOverlay)
+        // EXPLICIT <TextView> CAST APPLIED TO FIX THE CRASH
+        tvNanoOverlay = playerView.findViewById<TextView>(R.id.tvNanoSecondOverlay)
 
         initializePlayer()
         setupSwipeGestures()
@@ -61,8 +60,9 @@ class PlayerActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_video_settings, null)
         dialog.setContentView(view)
         
-        // Background ko transparent banana taaki rounded corners aur design sahi dikhe
-        (view.parent as View).setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        // SAFE Null-check added to prevent runtime crash
+        val parentView = view.parent as? View
+        parentView?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         
         dialog.show()
     }
