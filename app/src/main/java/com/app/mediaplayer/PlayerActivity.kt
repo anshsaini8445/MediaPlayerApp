@@ -15,6 +15,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlin.math.abs
 
 class PlayerActivity : AppCompatActivity() {
@@ -37,17 +38,33 @@ class PlayerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_player)
         playerView = findViewById(R.id.playerView)
 
-        // CRASH FIX: Find buttons SAFELY inside the PlayerView overlay
         val btnBack = playerView.findViewById<ImageButton>(R.id.btnBack)
         btnBack?.setOnClickListener { finish() }
 
         val btnScreenshot = playerView.findViewById<ImageButton>(R.id.btnScreenshot)
         btnScreenshot?.setOnClickListener { ScreenshotHelper.captureFrame(this, playerView) }
 
+        // NAYA: PLAYit Style Menu open karne ka code
+        val btnMoreSettings = playerView.findViewById<ImageButton>(R.id.btnMoreSettings)
+        btnMoreSettings?.setOnClickListener {
+            showPlayitStyleMenu()
+        }
+
         tvNanoOverlay = playerView.findViewById(R.id.tvNanoSecondOverlay)
 
         initializePlayer()
         setupSwipeGestures()
+    }
+
+    private fun showPlayitStyleMenu() {
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.dialog_video_settings, null)
+        dialog.setContentView(view)
+        
+        // Background ko transparent banana taaki rounded corners aur design sahi dikhe
+        (view.parent as View).setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        
+        dialog.show()
     }
 
     private fun initializePlayer() {
