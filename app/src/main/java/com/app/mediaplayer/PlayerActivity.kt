@@ -1,420 +1,101 @@
 package com.app.mediaplayer
 
-import android.app.AlertDialog
-import android.app.PictureInPictureParams
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.media.AudioManager
-import android.media.audiofx.AudioEffect
-import android.os.Build
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.os.Handler
-import android.os.Looper
-import android.util.Rational
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.ScaleGestureDetector
 import android.view.View
+import android.view.WindowManager
 import android.widget.ImageButton
-import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem as ExoMediaItem
+import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
-import androidx.media3.session.MediaController
-import androidx.media3.session.SessionToken
-import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 class PlayerActivity : AppCompatActivity() {
 
-    private var player: Player? = null
-    private var mediaController: MediaController? = null 
+    private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
-    private lateinit var tvGestureStatus: TextView
-    private var btnAudioOnly: LinearLayout? = null
-    private lateinit var audioManager: AudioManager
-    
+    private var tvNanoOverlay: TextView? = null
     private lateinit var gestureDetector: GestureDetector
-    private lateinit var scaleGestureDetector: ScaleGestureDetector
-    private var scaleFactor = 1.0f
 
-    private var isLocked = false
-    private var currentSpeed = 1.0f
-    private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-    private var isMirrored = false 
-    private var isAudioOnlyMode = false
-    private var isHWDecoder = true 
-
-    // Timer aur AB Repeat ke variables
-    private var sleepTimer: CountDownTimer? = null
-    private var repeatA: Long = -1L
-    private var repeatB: Long = -1L
-    private val handler = Handler(Looper.getMainLooper())
-    private val abRepeatRunnable = object : Runnable {
-        override fun run() {
-            if (repeatA != -1L && repeatB != -1L) {
-                player?.let { p ->
-                    if (p.currentPosition >= repeatB) {
-                        p.seekTo(repeatA)
-                    }
-                }
-            }
-            handler.postDelayed(this, 500)
-        }
-    }
+    private var isSeeking = false
+    private var seekPosition: Long = 0
+    private var totalDuration: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        
         setContentView(R.layout.activity_player)
-
         playerView = findViewById(R.id.playerView)
-        tvGestureStatus = findViewById(R.id.tvGestureStatus)
-        btnAudioOnly = findViewById(R.id.btnAudioOnly)
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        playerView.resizeMode = resizeMode
-        
-        setupGestures()
-        setupAudioOnlyButton()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
-        
-        val future = MediaController.Builder(this, sessionToken).buildAsync()
-        future.addListener({
-            try {
-                mediaController = future.get()
-                player = mediaController
-                playerView.player = player
-
-                setupCustomControls()
-
-                val mediaList = MainActivity.currentMediaList
-                val startIndex = intent.getIntExtra("START_INDEX", 0)
-
-                if (mediaList.isNotEmpty()) {
-                    val isAlreadyPlayingList = player?.mediaItemCount == mediaList.size
-                    
-                    if (!isAlreadyPlayingList) {
-                        val exoItems = mediaList.map { 
-                            ExoMediaItem.Builder()
-                                .setUri(it.path)
-                                .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
-                                .build() 
-                        }
-                        player?.setMediaItems(exoItems, startIndex, C.TIME_UNSET)
-                        player?.prepare()
-                        player?.play()
-                    } else if (player?.currentMediaItemIndex != startIndex) {
-                        player?.seekTo(startIndex, C.TIME_UNSET)
-                        player?.play()
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }, ContextCompat.getMainExecutor(this))
-    }
-
-    private fun setupAudioOnlyButton() {
-        btnAudioOnly?.setOnClickListener {
-            isAudioOnlyMode = !isAudioOnlyMode
-            if (isAudioOnlyMode) {
-                playerView.visibility = View.INVISIBLE
-                Toast.makeText(this, "Audio Mode Enabled 🎧", Toast.LENGTH_SHORT).show()
-            } else {
-                playerView.visibility = View.VISIBLE
-                Toast.makeText(this, "Video Mode Enabled 🎬", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun setupCustomControls() {
-        val tvTitle = playerView.findViewById<TextView>(R.id.tvVideoTitle)
+        // CRASH FIX: Find buttons SAFELY inside the PlayerView overlay
         val btnBack = playerView.findViewById<ImageButton>(R.id.btnBack)
-        val btnPiP = playerView.findViewById<ImageButton>(R.id.btnPiP)
-        val btnMute = playerView.findViewById<ImageButton>(R.id.btnMute)
-        val btnLock = playerView.findViewById<ImageButton>(R.id.btnLock)
-        val tvSpeed = playerView.findViewById<TextView>(R.id.tvSpeed)
-        val btnResize = playerView.findViewById<ImageButton>(R.id.btnResize)
-        val btnMoreSettings = playerView.findViewById<ImageButton>(R.id.btnMoreSettings)
-        
+        btnBack?.setOnClickListener { finish() }
+
+        val btnScreenshot = playerView.findViewById<ImageButton>(R.id.btnScreenshot)
+        btnScreenshot?.setOnClickListener { ScreenshotHelper.captureFrame(this, playerView) }
+
+        tvNanoOverlay = playerView.findViewById(R.id.tvNanoSecondOverlay)
+
+        initializePlayer()
+        setupSwipeGestures()
+    }
+
+    private fun initializePlayer() {
+        player = ExoPlayer.Builder(this).build()
+        playerView.player = player
+
+        val mediaList = MainActivity.currentMediaList
+        val startIndex = intent.getIntExtra("START_INDEX", 0)
+
+        if (mediaList.isNotEmpty()) {
+            val exoItems = mediaList.map { 
+                MediaItem.Builder()
+                    .setUri(it.path)
+                    .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
+                    .build() 
+            }
+            player?.setMediaItems(exoItems, startIndex, 0L)
+            player?.prepare()
+            player?.play()
+        }
+
+        val tvTitle = playerView.findViewById<TextView>(R.id.tvVideoTitle)
         player?.addListener(object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
-                super.onMediaItemTransition(mediaItem, reason)
-                tvTitle.text = mediaItem?.mediaMetadata?.title?.toString() ?: "MAX Player Video"
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                tvTitle?.text = mediaItem?.mediaMetadata?.title?.toString() ?: "Unknown Video"
+                totalDuration = player?.duration ?: 0
             }
         })
-
-        btnBack.setOnClickListener { finish() }
-
-        btnPiP.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
-            }
-        }
-
-        btnMute.setOnClickListener {
-            player?.let { p ->
-                if (p.volume > 0f) {
-                    p.volume = 0f
-                    Toast.makeText(this, "Video Muted", Toast.LENGTH_SHORT).show()
-                } else {
-                    p.volume = 1f
-                    Toast.makeText(this, "Volume Restored", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-        tvSpeed.setOnClickListener {
-            currentSpeed = when (currentSpeed) {
-                1.0f -> 1.5f
-                1.5f -> 2.0f
-                2.0f -> 0.5f
-                else -> 1.0f
-            }
-            player?.playbackParameters = PlaybackParameters(currentSpeed)
-            tvSpeed.text = "${currentSpeed}x"
-        }
-
-        btnResize.setOnClickListener {
-            resizeMode = if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
-                AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            } else {
-                AspectRatioFrameLayout.RESIZE_MODE_FIT
-            }
-            playerView.resizeMode = resizeMode
-        }
-
-        btnLock.setOnClickListener {
-            isLocked = !isLocked
-            if(isLocked) {
-                Toast.makeText(this, "Screen Locked 🔒", Toast.LENGTH_SHORT).show()
-                playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.INVISIBLE
-                playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.INVISIBLE
-                playerView.findViewById<View>(R.id.btnMute).visibility = View.INVISIBLE
-                playerView.findViewById<View>(R.id.btnCut).visibility = View.INVISIBLE
-                playerView.findViewById<View>(R.id.btnScreenshot).visibility = View.INVISIBLE
-            } else {
-                Toast.makeText(this, "Screen Unlocked 🔓", Toast.LENGTH_SHORT).show()
-                playerView.findViewById<View>(R.id.layoutTopControls).visibility = View.VISIBLE
-                playerView.findViewById<View>(R.id.layoutBottomControls).visibility = View.VISIBLE
-                playerView.findViewById<View>(R.id.btnMute).visibility = View.VISIBLE
-                playerView.findViewById<View>(R.id.btnCut).visibility = View.VISIBLE
-                playerView.findViewById<View>(R.id.btnScreenshot).visibility = View.VISIBLE
-            }
-        }
-
-        btnMoreSettings.setOnClickListener { 
-            showAdvancedSettingsDialog()
-        }
-
-        playerView.findViewById<ImageButton>(R.id.btnCut).setOnClickListener { 
-            Toast.makeText(this, "Video Cutter Module will load here", Toast.LENGTH_SHORT).show() 
-        }
-        playerView.findViewById<ImageButton>(R.id.btnAudioTrack).setOnClickListener { 
-            Toast.makeText(this, "Multiple Audio Tracks Selector", Toast.LENGTH_SHORT).show() 
-        }
-        playerView.findViewById<ImageButton>(R.id.btnScreenshot).setOnClickListener { 
-            Toast.makeText(this, "Screenshot Captured! 📸", Toast.LENGTH_SHORT).show() 
-        }
     }
 
-    private fun showAdvancedSettingsDialog() {
-        val dialog = BottomSheetDialog(this)
-        val view = layoutInflater.inflate(R.layout.dialog_more_settings, null)
-        dialog.setContentView(view)
-
-        view.findViewById<View>(R.id.btnAudioTrackMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "No external tracks found", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnEqualizerMenu).setOnClickListener { dialog.dismiss(); openEqualizer() }
-        view.findViewById<View>(R.id.btnCastMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Searching for TV to Cast 📺...", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnShareMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Share App", Toast.LENGTH_SHORT).show() }
-
-        view.findViewById<View>(R.id.btnCutMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Opening Video Cutter", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnFavMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Added to Favorites ⭐", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnBookmarkMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Video Bookmarked 🔖", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnVRMenu).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "VR 360 Mode Activated 🕶️", Toast.LENGTH_SHORT).show() }
-
-        // AB Repeat Logic
-        view.findViewById<View>(R.id.btnABRepeat).setOnClickListener { 
-            dialog.dismiss()
-            if (repeatA == -1L) {
-                repeatA = player?.currentPosition ?: 0L
-                Toast.makeText(this, "Point A Set! Click again for Point B.", Toast.LENGTH_SHORT).show()
-                handler.post(abRepeatRunnable)
-            } else if (repeatB == -1L) {
-                repeatB = player?.currentPosition ?: 0L
-                Toast.makeText(this, "A-B Repeat Started! 🔁", Toast.LENGTH_SHORT).show()
-            } else {
-                repeatA = -1L
-                repeatB = -1L
-                handler.removeCallbacks(abRepeatRunnable)
-                Toast.makeText(this, "A-B Repeat Cancelled", Toast.LENGTH_SHORT).show()
-            }
-        }
-        
-        view.findViewById<View>(R.id.btnNightMode).setOnClickListener {
-            dialog.dismiss()
-            val layout = window.attributes
-            layout.screenBrightness = 0.05f 
-            window.attributes = layout
-            Toast.makeText(this, "Night Mode ON 🌙", Toast.LENGTH_SHORT).show()
-        }
-
-        view.findViewById<View>(R.id.btnMirrorMode).setOnClickListener {
-            dialog.dismiss()
-            isMirrored = !isMirrored
-            val videoSurface = playerView.videoSurfaceView
-            if (videoSurface != null) {
-                videoSurface.scaleX = if (isMirrored) -1f else 1f
-                Toast.makeText(this, if (isMirrored) "Mirror Mode ON ◨◧" else "Mirror Mode OFF", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Sleep Timer Logic
-        view.findViewById<View>(R.id.btnTimer).setOnClickListener { 
-            dialog.dismiss()
-            showTimerDialog()
-        }
-
-        val btnHW = view.findViewById<TextView>(R.id.btnHW)
-        val btnSW = view.findViewById<TextView>(R.id.btnSW)
-        
-        if(isHWDecoder) {
-            btnHW.setTextColor(android.graphics.Color.parseColor("#00E676"))
-            btnSW.setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
-        } else {
-            btnHW.setTextColor(android.graphics.Color.parseColor("#FFFFFF"))
-            btnSW.setTextColor(android.graphics.Color.parseColor("#00E676"))
-        }
-
-        btnHW.setOnClickListener {
-            isHWDecoder = true
-            Toast.makeText(this, "Switched to Hardware Decoder", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
-        }
-        btnSW.setOnClickListener {
-            isHWDecoder = false
-            Toast.makeText(this, "Switched to Software Decoder", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
-        }
-
-        view.findViewById<View>(R.id.btnEditInfo).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Edit Video Info", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnTutorial).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Opening Tutorials...", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnFileInfo).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Showing File Info", Toast.LENGTH_SHORT).show() }
-        view.findViewById<View>(R.id.btnFeedback).setOnClickListener { dialog.dismiss(); Toast.makeText(this, "Send Feedback", Toast.LENGTH_SHORT).show() }
-
-        dialog.show()
-    }
-
-    private fun showTimerDialog() {
-        val options = arrayOf("10 Minutes", "20 Minutes", "30 Minutes", "Turn Off Timer")
-        AlertDialog.Builder(this)
-            .setTitle("Set Sleep Timer")
-            .setItems(options) { _, which ->
-                sleepTimer?.cancel() // Purana timer band karo
-                when (which) {
-                    0 -> startTimer(10)
-                    1 -> startTimer(20)
-                    2 -> startTimer(30)
-                    3 -> Toast.makeText(this, "Timer Cancelled", Toast.LENGTH_SHORT).show()
-                }
-            }.show()
-    }
-
-    private fun startTimer(minutes: Int) {
-        val millis = minutes * 60 * 1000L
-        sleepTimer = object : CountDownTimer(millis, 1000) {
-            override fun onTick(millisUntilFinished: Long) {}
-            override fun onFinish() {
-                player?.pause()
-                Toast.makeText(this@PlayerActivity, "Sleep Timer Finished. Video Paused.", Toast.LENGTH_LONG).show()
-                finish() // App band kar dega
-            }
-        }.start()
-        Toast.makeText(this, "Timer set for $minutes minutes ⏱️", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAudioOnlyMode) {
-            enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
-        }
-    }
-
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        playerView.useController = !isInPictureInPictureMode
-        btnAudioOnly?.visibility = if (isInPictureInPictureMode) View.GONE else View.VISIBLE
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        sleepTimer?.cancel()
-        handler.removeCallbacks(abRepeatRunnable)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        mediaController?.release()
-        mediaController = null
-        player = null
-    }
-
-    private fun setupGestures() {
-        scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-            override fun onScale(detector: ScaleGestureDetector): Boolean {
-                if (isLocked || isAudioOnlyMode) return false 
-                
-                scaleFactor *= detector.scaleFactor
-                scaleFactor = max(1.0f, min(scaleFactor, 6.0f)) 
-                val contentFrame = playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)
-                contentFrame?.scaleX = scaleFactor
-                contentFrame?.scaleY = scaleFactor
-                return true
-            }
-        })
-
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupSwipeGestures() {
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onDoubleTap(e: MotionEvent): Boolean {
-                if (isLocked) return false 
-                player?.let {
-                    if (it.isPlaying) it.pause() else it.play()
-                }
-                return true
-            }
-
-            override fun onLongPress(e: MotionEvent) {
-                if (isLocked) return 
-                openEqualizer()
-            }
-
             override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-                if (isLocked || e1 == null) return false 
-                
-                val screenWidth = resources.displayMetrics.widthPixels
-                val isRightSide = e1.x > (screenWidth / 2)
+                if (e1 == null || totalDuration <= 0) return false
 
-                if (abs(distanceY) > abs(distanceX)) {
-                    if (isRightSide) {
-                        adjustVolume(distanceY)
-                    } else {
-                        adjustBrightness(distanceY)
-                    }
+                if (abs(distanceX) > abs(distanceY)) {
+                    isSeeking = true
+                    tvNanoOverlay?.visibility = View.VISIBLE
+                    
+                    val change = (distanceX * -100).toLong() 
+                    seekPosition = player?.currentPosition ?: 0
+                    seekPosition += change
+                    
+                    if (seekPosition < 0) seekPosition = 0
+                    if (seekPosition > totalDuration) seekPosition = totalDuration
+                    
+                    tvNanoOverlay?.text = PrecisionTimeFormatter.formatWithMillis(seekPosition)
                     return true
                 }
                 return false
@@ -422,48 +103,24 @@ class PlayerActivity : AppCompatActivity() {
         })
 
         playerView.setOnTouchListener { _, event ->
-            scaleGestureDetector.onTouchEvent(event)
             gestureDetector.onTouchEvent(event)
-            if (event.action == MotionEvent.ACTION_UP) {
-                tvGestureStatus.visibility = View.GONE
+            
+            if (event.action == MotionEvent.ACTION_UP && isSeeking) {
+                player?.seekTo(seekPosition)
+                tvNanoOverlay?.visibility = View.GONE
+                isSeeking = false
             }
-            false 
+            true
         }
     }
 
-    private fun openEqualizer() {
-        val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-            putExtra(AudioEffect.EXTRA_AUDIO_SESSION, 0)
-            putExtra(AudioEffect.EXTRA_PACKAGE_NAME, packageName)
-            putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MOVIE)
-        }
-        try {
-            startActivityForResult(intent, 0)
-        } catch (e: Exception) {
-            showStatus("Equalizer not supported")
-        }
+    override fun onStop() {
+        super.onStop()
+        player?.pause()
     }
 
-    private fun adjustVolume(deltaY: Float) {
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val step = if (deltaY > 0) 1 else -1
-        val newVolume = (currentVolume + step).coerceIn(0, maxVolume)
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
-        showStatus("Volume: ${(newVolume * 100) / maxVolume}%")
-    }
-
-    private fun adjustBrightness(deltaY: Float) {
-        val layout = window.attributes
-        var current = if (layout.screenBrightness < 0) 0.5f else layout.screenBrightness
-        current += (deltaY / 1000f)
-        layout.screenBrightness = current.coerceIn(0.01f, 1.0f)
-        window.attributes = layout
-        showStatus("Brightness: ${(layout.screenBrightness * 100).toInt()}%")
-    }
-
-    private fun showStatus(text: String) {
-        tvGestureStatus.text = text
-        tvGestureStatus.visibility = View.VISIBLE
+    override fun onDestroy() {
+        super.onDestroy()
+        player?.release()
     }
 }
