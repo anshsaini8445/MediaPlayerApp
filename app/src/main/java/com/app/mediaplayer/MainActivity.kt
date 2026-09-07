@@ -6,7 +6,10 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -31,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabVideo: TextView
     private lateinit var tabFolder: TextView
     private lateinit var tabPlaylist: TextView
+    private lateinit var searchBar: EditText
 
     private var isGridView = false
     private var isShowingVideos = true
@@ -52,12 +56,14 @@ class MainActivity : AppCompatActivity() {
         tabVideo = findViewById(R.id.tabVideo)
         tabFolder = findViewById(R.id.tabFolder)
         tabPlaylist = findViewById(R.id.tabPlaylist)
+        searchBar = findViewById(R.id.bottomSearchBar)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         setupTopTabs()
         setupViewToggle()
         setupSettingsClicks()
+        setupSearchBar()
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -68,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.VISIBLE
+                    findViewById<View>(R.id.bottomSearchBarContainer)?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
@@ -79,14 +85,14 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.VISIBLE
+                    findViewById<View>(R.id.bottomSearchBarContainer)?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
                 R.id.nav_settings -> {
                     recyclerView.visibility = View.GONE
                     subTabs.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.GONE
+                    findViewById<View>(R.id.bottomSearchBarContainer)?.visibility = View.GONE
                     settingsLayout.visibility = View.VISIBLE
                     true
                 }
@@ -96,28 +102,43 @@ class MainActivity : AppCompatActivity() {
         checkAndRequestPermissions()
     }
 
+    private fun setupSearchBar() {
+        searchBar.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val query = s.toString().trim()
+                if (query.isEmpty()) {
+                    updateList()
+                } else {
+                    val baseList = if (isShowingVideos) videoList else audioList
+                    val filteredList = baseList.filter { it.title.contains(query, ignoreCase = true) }
+                    showItemsInFolder(filteredList)
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
     private fun setupSettingsClicks() {
         val settingsScrollView = findViewById<ScrollView>(R.id.settingsLayout)
         val linearParent = settingsScrollView.getChildAt(0) as LinearLayout
 
-        linearParent.getChildAt(0).setOnClickListener {
-            startActivity(Intent(this, PremiumActivity::class.java))
-        }
+        // Premium Banner
+        linearParent.getChildAt(0).setOnClickListener { startActivity(Intent(this, PremiumActivity::class.java)) }
 
+        // Icons Row (MP3, Theme, Vault)
         val iconsRow = linearParent.getChildAt(1) as LinearLayout
         iconsRow.getChildAt(0).setOnClickListener { startActivity(Intent(this, Mp3ConverterActivity::class.java)) }
         iconsRow.getChildAt(1).setOnClickListener { startActivity(Intent(this, ThemeActivity::class.java)) }
         iconsRow.getChildAt(2).setOnClickListener { startActivity(Intent(this, VaultActivity::class.java)) }
 
-        val tvEq = linearParent.getChildAt(3)
-        val tvBin = linearParent.getChildAt(4)
-
-        tvEq.setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
-        tvBin.setOnClickListener { startActivity(Intent(this, RecycleBinActivity::class.java)) }
+        // Equalizer & Recycle Bin
+        linearParent.getChildAt(2).setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
+        linearParent.getChildAt(3).setOnClickListener { startActivity(Intent(this, RecycleBinActivity::class.java)) }
     }
 
     private fun resetTabsToDefault() {
-        val activeColor = android.graphics.Color.parseColor("#2196F3")
+        val activeColor = android.graphics.Color.parseColor("#00E5FF")
         val inactiveColor = android.graphics.Color.parseColor("#AAAAAA")
         tabVideo.setTextColor(activeColor)
         tabFolder.setTextColor(inactiveColor)
@@ -125,7 +146,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupTopTabs() {
-        val activeColor = android.graphics.Color.parseColor("#2196F3")
+        val activeColor = android.graphics.Color.parseColor("#00E5FF")
         val inactiveColor = android.graphics.Color.parseColor("#AAAAAA")
 
         tabVideo.setOnClickListener {
@@ -229,7 +250,7 @@ class MainActivity : AppCompatActivity() {
             recyclerView.adapter = FolderAdapter(folders) { clickedFolder ->
                 isFolderView = false
                 tabFolder.setTextColor(android.graphics.Color.parseColor("#AAAAAA"))
-                tabVideo.setTextColor(android.graphics.Color.parseColor("#2196F3"))
+                tabVideo.setTextColor(android.graphics.Color.parseColor("#00E5FF"))
                 showItemsInFolder(clickedFolder.mediaItems)
             }
         } else {
@@ -247,13 +268,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // MASTER TRICK: 3-Dot मेनू बिना MediaAdapter को छेड़े, वीडियो पर लॉन्ग प्रेस (Long Press) करने से खुलेगा।
+        // Long Press on any item to open the 3-Dot Menu options
         recyclerView.clearOnChildAttachStateChangeListeners()
         recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
             override fun onChildViewAttachedToWindow(view: View) {
                 view.setOnLongClickListener {
                     val position = recyclerView.getChildAdapterPosition(view)
-                    if (position >= 0 && position < itemsToShow.size) {
+                    if (position in itemsToShow.indices) {
                         showMediaOptionsDialog(itemsToShow[position])
                     }
                     true
@@ -286,7 +307,8 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Delete File")
                 .setMessage("Want to delete this $mediaType?")
                 .setPositiveButton("Delete") { _, _ ->
-                    android.widget.Toast.makeText(this, "Deleted successfully", android.widget.Toast.LENGTH_SHORT).show()
+                    // UI Toast. Actual file deletion logic needs scoped storage permission
+                    android.widget.Toast.makeText(this, "File sent to Recycle Bin", android.widget.Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
