@@ -2,30 +2,55 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="#1E1E24"
     android:orientation="vertical"
-    android:padding="20dp"
-    android:background="#1A1A1A">
+    android:padding="20dp">
 
-    <TextView android:id="@+id/menuMediaTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:textStyle="bold" android:textColor="#FFFFFF" android:layout_marginBottom="16dp" android:singleLine="true"/>
-    
-    <!-- Audio Specific -->
-    <TextView android:id="@+id/menuSetRingtone" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Set as ringtone" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    
-    <!-- Video Specific -->
-    <TextView android:id="@+id/menuConvertMp3" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Convert to mp3" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuProperties" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Properties" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
+    <TextView
+        android:id="@+id/menuMediaTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Media Title"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"
+        android:singleLine="true"
+        android:ellipsize="marquee"/>
 
-    <!-- Common Options -->
-    <TextView android:id="@+id/menuCreatePlaylist" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Create Playlist" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuAddToPlaylist" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Add to Playlist" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuPlaylist" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Playlist" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuLockVault" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Lock in private vault" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuShare" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Share" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuRename" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Rename" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuCut" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cut" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuSubtitles" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Subtitles" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    <TextView android:id="@+id/menuFileInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="File info" android:textColor="#FFFFFF" android:padding="12dp" android:textSize="15sp"/>
-    
-    <!-- Red Delete Button -->
-    <TextView android:id="@+id/menuDelete" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Delete" android:textColor="#FF3B30" android:textStyle="bold" android:padding="12dp" android:textSize="15sp"/>
+    <TextView
+        android:id="@+id/menuConvertToMp3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🎧 Convert to MP3"
+        android:textColor="#E0E0E0"
+        android:textSize="16sp"
+        android:paddingVertical="12dp"/>
+
+    <TextView
+        android:id="@+id/menuLockVault"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔒 Move to Private Vault"
+        android:textColor="#E0E0E0"
+        android:textSize="16sp"
+        android:paddingVertical="12dp"/>
+
+    <TextView
+        android:id="@+id/menuShare"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📤 Share"
+        android:textColor="#E0E0E0"
+        android:textSize="16sp"
+        android:paddingVertical="12dp"/>
+
+    <TextView
+        android:id="@+id/menuDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🗑️ Delete"
+        android:textColor="#FF5252"
+        android:textSize="16sp"
+        android:paddingVertical="12dp"/>
 </LinearLayout>
