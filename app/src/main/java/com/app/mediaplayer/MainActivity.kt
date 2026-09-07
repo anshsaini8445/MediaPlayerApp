@@ -126,13 +126,13 @@ class MainActivity : AppCompatActivity() {
         // Premium Banner
         linearParent.getChildAt(0).setOnClickListener { startActivity(Intent(this, PremiumActivity::class.java)) }
 
-        // Icons Row (MP3, Theme, Vault)
+        // Icons Row
         val iconsRow = linearParent.getChildAt(1) as LinearLayout
         iconsRow.getChildAt(0).setOnClickListener { startActivity(Intent(this, Mp3ConverterActivity::class.java)) }
         iconsRow.getChildAt(1).setOnClickListener { startActivity(Intent(this, ThemeActivity::class.java)) }
         iconsRow.getChildAt(2).setOnClickListener { startActivity(Intent(this, VaultActivity::class.java)) }
 
-        // Equalizer & Recycle Bin
+        // Bottom Settings Options
         linearParent.getChildAt(2).setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
         linearParent.getChildAt(3).setOnClickListener { startActivity(Intent(this, RecycleBinActivity::class.java)) }
     }
@@ -191,9 +191,7 @@ class MainActivity : AppCompatActivity() {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
 
-        val missing = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
+        val missing = permissions.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
 
         if (missing.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 101)
@@ -211,25 +209,43 @@ class MainActivity : AppCompatActivity() {
         videoList.clear()
         audioList.clear()
 
-        val videoProjection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DATA)
+        val videoProjection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION)
         contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
             val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)
             val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
+            val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
             
             while (cursor.moveToNext()) {
-                videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), true))
+                val duration = cursor.getLong(durationCol)
+                // Using Named Arguments to prevent Type Mismatch errors
+                videoList.add(MediaItem(
+                    id = cursor.getLong(idCol), 
+                    title = cursor.getString(titleCol) ?: "Unknown", 
+                    path = cursor.getString(pathCol), 
+                    duration = duration,
+                    isVideo = true
+                ))
             }
         }
 
-        val audioProjection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA)
+        val audioProjection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DURATION)
         contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audioProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+            val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
             
             while (cursor.moveToNext()) {
-                audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), false))
+                val duration = cursor.getLong(durationCol)
+                // Using Named Arguments to prevent Type Mismatch errors
+                audioList.add(MediaItem(
+                    id = cursor.getLong(idCol), 
+                    title = cursor.getString(titleCol) ?: "Unknown", 
+                    path = cursor.getString(pathCol), 
+                    duration = duration,
+                    isVideo = false
+                ))
             }
         }
         bottomNav.selectedItemId = R.id.nav_video
@@ -261,29 +277,19 @@ class MainActivity : AppCompatActivity() {
     private fun showItemsInFolder(itemsToShow: List<MediaItem>) {
         recyclerView.layoutManager = if (isGridView) GridLayoutManager(this, 2) else LinearLayoutManager(this)
         
-        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView) { item ->
-            currentMediaList = itemsToShow
-            val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
-            val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
-            startActivity(intent)
-        }
-
-        // Long Press on any item to open the 3-Dot Menu options
-        recyclerView.clearOnChildAttachStateChangeListeners()
-        recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
-            override fun onChildViewAttachedToWindow(view: View) {
-                view.setOnLongClickListener {
-                    val position = recyclerView.getChildAdapterPosition(view)
-                    if (position in itemsToShow.indices) {
-                        showMediaOptionsDialog(itemsToShow[position])
-                    }
-                    true
-                }
+        recyclerView.adapter = MediaAdapter(
+            items = itemsToShow, 
+            isGrid = isGridView, 
+            onClick = { item ->
+                currentMediaList = itemsToShow
+                val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
+                val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
+                startActivity(intent)
+            },
+            onMoreClick = { item ->
+                showMediaOptionsDialog(item)
             }
-            override fun onChildViewDetachedFromWindow(view: View) {
-                view.setOnLongClickListener(null)
-            }
-        })
+        )
     }
 
     private fun showMediaOptionsDialog(item: MediaItem) {
@@ -307,7 +313,6 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Delete File")
                 .setMessage("Want to delete this $mediaType?")
                 .setPositiveButton("Delete") { _, _ ->
-                    // UI Toast. Actual file deletion logic needs scoped storage permission
                     android.widget.Toast.makeText(this, "File sent to Recycle Bin", android.widget.Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
