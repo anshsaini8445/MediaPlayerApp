@@ -6,72 +6,46 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import java.io.File
 import java.util.Locale
 
 class MediaAdapter(
     private val items: List<MediaItem>,
-    private val isGrid: Boolean = false, // Pata lagane ke liye ki Grid hai ya nahi
+    private val isGrid: Boolean,
     private val onClick: (MediaItem) -> Unit
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+) : RecyclerView.Adapter<MediaAdapter.ViewHolder>() {
 
-    private val VIEW_TYPE_LIST = 1
-    private val VIEW_TYPE_GRID = 2
-
-    // List Wala Design
-    class ListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val title: TextView = view.findViewById(R.id.tvTitle)
-        val duration: TextView = view.findViewById(R.id.tvDuration)
-        val thumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val title: TextView = view.findViewById(android.R.id.text1)
+        val icon: ImageView = view.findViewById(android.R.id.icon)
+        val duration: TextView? = view.findViewById(android.R.id.text2)
     }
 
-    // Grid (Naya) Wala Design
-    class GridViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val title: TextView = view.findViewById(R.id.tvTitleGrid)
-        val duration: TextView = view.findViewById(R.id.tvDurationGrid)
-        val thumbnail: ImageView = view.findViewById(R.id.imgThumbnailGrid)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        // Using Android's default simple layouts to prevent any XML missing errors
+        val layoutId = if (isGrid) android.R.layout.activity_list_item else android.R.layout.simple_list_item_2
+        val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
+        return ViewHolder(view)
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return if (isGrid) VIEW_TYPE_GRID else VIEW_TYPE_LIST
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return if (viewType == VIEW_TYPE_GRID) {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_media_grid, parent, false)
-            GridViewHolder(view)
-        } else {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_media, parent, false)
-            ListViewHolder(view)
-        }
-    }
-
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
+        holder.title.text = item.title
         
-        val minutes = (item.duration / 1000) / 60
-        val seconds = (item.duration / 1000) % 60
-        val timeStr = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-
-        if (holder is ListViewHolder) {
-            holder.title.text = item.title
-            holder.duration.text = timeStr
-            if (item.isVideo) {
-                Glide.with(holder.itemView.context).load(item.path).centerCrop().into(holder.thumbnail)
-            } else {
-                holder.thumbnail.setImageResource(android.R.drawable.ic_media_play)
-            }
-            holder.itemView.setOnClickListener { onClick(item) }
-        } else if (holder is GridViewHolder) {
-            holder.title.text = item.title
-            holder.duration.text = timeStr
-            if (item.isVideo) {
-                Glide.with(holder.itemView.context).load(item.path).centerCrop().into(holder.thumbnail)
-            } else {
-                holder.thumbnail.setImageResource(android.R.drawable.ic_media_play)
-            }
-            holder.itemView.setOnClickListener { onClick(item) }
+        // Icon logic
+        if (item.isVideo) {
+            holder.icon.setImageResource(android.R.drawable.ic_media_play)
+        } else {
+            holder.icon.setImageResource(android.R.drawable.ic_media_audio)
         }
+
+        // Format Duration
+        val totalSecs = item.duration / 1000
+        val mins = totalSecs / 60
+        val secs = totalSecs % 60
+        holder.duration?.text = String.format(Locale.getDefault(), "%02d:%02d", mins, secs)
+
+        holder.itemView.setOnClickListener { onClick(item) }
     }
 
     override fun getItemCount() = items.size
