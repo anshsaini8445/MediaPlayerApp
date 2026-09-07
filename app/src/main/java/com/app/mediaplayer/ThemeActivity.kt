@@ -1,33 +1,30 @@
 package com.app.mediaplayer
 
 import android.os.Bundle
-import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 
 class ThemeActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_theme)
 
-        findViewById<ImageButton>(R.id.btnThemeBack).setOnClickListener { finish() }
+        val themes = listOf(
+            R.id.themeSaffron to "Saffron Theme Applied!",
+            R.id.themeDark to "Dark Night Theme Applied!",
+            R.id.themeNeon to "Neon Blue Theme Applied!",
+            R.id.themePurple to "Deep Purple Theme Applied!",
+            R.id.themeRed to "Blood Red Theme Applied!",
+            R.id.themeGreen to "Forest Green Theme Applied!"
+        )
 
-        setupThemeOption(R.id.themeBhagwa, ThemeManager.COLOR_BHAGWA, "Bhagwa Orange")
-        setupThemeOption(R.id.themeNeon, ThemeManager.COLOR_CYBER_NEON, "Cyber Cyan")
-        setupThemeOption(R.id.themeEmerald, ThemeManager.COLOR_EMERALD, "Emerald Green")
-        setupThemeOption(R.id.themePurple, ThemeManager.COLOR_PURPLE, "Sunset Purple")
-        setupThemeOption(R.id.themeRed, ThemeManager.COLOR_RED, "Ruby Red")
-        setupThemeOption(R.id.themeBlue, ThemeManager.COLOR_BLUE, "Royal Blue")
-        setupThemeOption(R.id.themeGold, ThemeManager.COLOR_GOLD, "Pitch Gold")
-    }
-
-    private fun setupThemeOption(viewId: Int, color: Int, themeName: String) {
-        findViewById<TextView>(viewId).setOnClickListener {
-            ThemeManager.setSelectedThemeColor(this, color)
-            Toast.makeText(this, "🎨 Theme applied: $themeName", Toast.LENGTH_SHORT).show()
-            finish()
+        for ((id, message) in themes) {
+            findViewById<CardView>(id).setOnClickListener {
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                // Theme apply logic will be connected to SharedPreferences later
+                finish()
+            }
         }
     }
 }
