@@ -72,7 +72,6 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
@@ -83,14 +82,12 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
                 R.id.nav_settings -> {
                     recyclerView.visibility = View.GONE
                     subTabs.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.GONE
                     settingsLayout.visibility = View.VISIBLE
                     true
                 }
