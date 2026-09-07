@@ -6,13 +6,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -24,21 +22,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
+
     private val videoList = mutableListOf<MediaItem>()
     private val audioList = mutableListOf<MediaItem>()
     private lateinit var recyclerView: RecyclerView
     private lateinit var settingsLayout: ScrollView
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var subTabs: LinearLayout
+    
     private lateinit var btnViewToggle: TextView
     private lateinit var tabVideo: TextView
     private lateinit var tabFolder: TextView
     private lateinit var tabPlaylist: TextView
-    private lateinit var searchBar: EditText
 
-    private var isGridView = false
-    private var isShowingVideos = true
-    private var isFolderView = false
+    private var isGridView = false 
+    private var isShowingVideos = true 
+    private var isFolderView = false 
 
     companion object {
         var currentMediaList: List<MediaItem> = emptyList()
@@ -52,18 +51,17 @@ class MainActivity : AppCompatActivity() {
         settingsLayout = findViewById(R.id.settingsLayout)
         bottomNav = findViewById(R.id.bottomNav)
         subTabs = findViewById(R.id.subTabs)
+        
         btnViewToggle = findViewById(R.id.btnViewToggle)
         tabVideo = findViewById(R.id.tabVideo)
         tabFolder = findViewById(R.id.tabFolder)
         tabPlaylist = findViewById(R.id.tabPlaylist)
-        searchBar = findViewById(R.id.bottomSearchBar)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         setupTopTabs()
         setupViewToggle()
         setupSettingsClicks()
-        setupSearchBar()
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -74,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBarContainer)?.visibility = View.VISIBLE
+                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
@@ -85,60 +83,47 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     subTabs.visibility = View.VISIBLE
                     settingsLayout.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBarContainer)?.visibility = View.VISIBLE
+                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.VISIBLE
                     updateList()
                     true
                 }
                 R.id.nav_settings -> {
                     recyclerView.visibility = View.GONE
                     subTabs.visibility = View.GONE
-                    findViewById<View>(R.id.bottomSearchBarContainer)?.visibility = View.GONE
+                    findViewById<View>(R.id.bottomSearchBar)?.visibility = View.GONE
                     settingsLayout.visibility = View.VISIBLE
                     true
                 }
                 else -> false
             }
         }
-        checkAndRequestPermissions()
-    }
 
-    private fun setupSearchBar() {
-        searchBar.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                val query = s.toString().trim()
-                if (query.isEmpty()) {
-                    updateList()
-                } else {
-                    val baseList = if (isShowingVideos) videoList else audioList
-                    val filteredList = baseList.filter { it.title.contains(query, ignoreCase = true) }
-                    showItemsInFolder(filteredList)
-                }
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
+        checkAndRequestPermissions()
     }
 
     private fun setupSettingsClicks() {
         val settingsScrollView = findViewById<ScrollView>(R.id.settingsLayout)
         val linearParent = settingsScrollView.getChildAt(0) as LinearLayout
+        
+        linearParent.getChildAt(0).setOnClickListener { 
+             startActivity(Intent(this, PremiumActivity::class.java))
+        }
 
-        // Premium Banner
-        linearParent.getChildAt(0).setOnClickListener { startActivity(Intent(this, PremiumActivity::class.java)) }
-
-        // Icons Row
         val iconsRow = linearParent.getChildAt(1) as LinearLayout
+        
         iconsRow.getChildAt(0).setOnClickListener { startActivity(Intent(this, Mp3ConverterActivity::class.java)) }
         iconsRow.getChildAt(1).setOnClickListener { startActivity(Intent(this, ThemeActivity::class.java)) }
         iconsRow.getChildAt(2).setOnClickListener { startActivity(Intent(this, VaultActivity::class.java)) }
 
-        // Bottom Settings Options
-        linearParent.getChildAt(2).setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
-        linearParent.getChildAt(3).setOnClickListener { startActivity(Intent(this, RecycleBinActivity::class.java)) }
+        val tvEq = linearParent.getChildAt(3) 
+        val tvBin = linearParent.getChildAt(4) 
+        
+        tvEq.setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
+        tvBin.setOnClickListener { startActivity(Intent(this, RecycleBinActivity::class.java)) }
     }
 
     private fun resetTabsToDefault() {
-        val activeColor = android.graphics.Color.parseColor("#00E5FF")
+        val activeColor = android.graphics.Color.parseColor("#2196F3")
         val inactiveColor = android.graphics.Color.parseColor("#AAAAAA")
         tabVideo.setTextColor(activeColor)
         tabFolder.setTextColor(inactiveColor)
@@ -146,7 +131,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupTopTabs() {
-        val activeColor = android.graphics.Color.parseColor("#00E5FF")
+        val activeColor = android.graphics.Color.parseColor("#2196F3")
         val inactiveColor = android.graphics.Color.parseColor("#AAAAAA")
 
         tabVideo.setOnClickListener {
@@ -156,6 +141,7 @@ class MainActivity : AppCompatActivity() {
             tabPlaylist.setTextColor(inactiveColor)
             updateList()
         }
+
         tabFolder.setOnClickListener {
             isFolderView = true
             tabFolder.setTextColor(activeColor)
@@ -163,21 +149,23 @@ class MainActivity : AppCompatActivity() {
             tabPlaylist.setTextColor(inactiveColor)
             updateList()
         }
+
         tabPlaylist.setOnClickListener {
             isFolderView = false
             tabPlaylist.setTextColor(activeColor)
             tabVideo.setTextColor(inactiveColor)
             tabFolder.setTextColor(inactiveColor)
-            updateList()
+            updateList() 
         }
     }
 
     private fun setupViewToggle() {
         btnViewToggle.setOnClickListener {
-            if (isFolderView) return@setOnClickListener
+            if (isFolderView) return@setOnClickListener 
+            
             isGridView = !isGridView
-            if (isGridView) btnViewToggle.text = "▦" else btnViewToggle.text = "☰"
-            updateList()
+            if (isGridView) btnViewToggle.text = "☰" else btnViewToggle.text = "☷"
+            updateList() 
         }
     }
 
@@ -191,13 +179,12 @@ class MainActivity : AppCompatActivity() {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
 
-        val missing = permissions.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
-
-        if (missing.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 101)
-        } else {
-            scanMedia()
+        val missing = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
+
+        if (missing.isNotEmpty()) ActivityCompat.requestPermissions(this, missing.toTypedArray(), 101)
+        else scanMedia()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -215,17 +202,9 @@ class MainActivity : AppCompatActivity() {
             val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)
             val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-            
+
             while (cursor.moveToNext()) {
-                val duration = cursor.getLong(durationCol)
-                // Using Named Arguments to prevent Type Mismatch errors
-                videoList.add(MediaItem(
-                    id = cursor.getLong(idCol), 
-                    title = cursor.getString(titleCol) ?: "Unknown", 
-                    path = cursor.getString(pathCol), 
-                    duration = duration,
-                    isVideo = true
-                ))
+                videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), cursor.getLong(durationCol), true))
             }
         }
 
@@ -235,17 +214,9 @@ class MainActivity : AppCompatActivity() {
             val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-            
+
             while (cursor.moveToNext()) {
-                val duration = cursor.getLong(durationCol)
-                // Using Named Arguments to prevent Type Mismatch errors
-                audioList.add(MediaItem(
-                    id = cursor.getLong(idCol), 
-                    title = cursor.getString(titleCol) ?: "Unknown", 
-                    path = cursor.getString(pathCol), 
-                    duration = duration,
-                    isVideo = false
-                ))
+                audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), cursor.getLong(durationCol), false))
             }
         }
         bottomNav.selectedItemId = R.id.nav_video
@@ -266,7 +237,7 @@ class MainActivity : AppCompatActivity() {
             recyclerView.adapter = FolderAdapter(folders) { clickedFolder ->
                 isFolderView = false
                 tabFolder.setTextColor(android.graphics.Color.parseColor("#AAAAAA"))
-                tabVideo.setTextColor(android.graphics.Color.parseColor("#00E5FF"))
+                tabVideo.setTextColor(android.graphics.Color.parseColor("#2196F3"))
                 showItemsInFolder(clickedFolder.mediaItems)
             }
         } else {
@@ -277,17 +248,15 @@ class MainActivity : AppCompatActivity() {
     private fun showItemsInFolder(itemsToShow: List<MediaItem>) {
         recyclerView.layoutManager = if (isGridView) GridLayoutManager(this, 2) else LinearLayoutManager(this)
         
-        recyclerView.adapter = MediaAdapter(
-            items = itemsToShow, 
-            isGrid = isGridView, 
+        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView, 
+            onMoreClick = { item ->
+                showMediaOptionsDialog(item)
+            },
             onClick = { item ->
                 currentMediaList = itemsToShow
                 val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
                 val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
                 startActivity(intent)
-            },
-            onMoreClick = { item ->
-                showMediaOptionsDialog(item)
             }
         )
     }
@@ -299,41 +268,29 @@ class MainActivity : AppCompatActivity() {
 
         view.findViewById<TextView>(R.id.menuMediaTitle).text = item.title
 
-        if (item.isVideo) {
-            view.findViewById<View>(R.id.menuSetRingtone).visibility = View.GONE
-        } else {
-            view.findViewById<View>(R.id.menuConvertMp3).visibility = View.GONE
-            view.findViewById<View>(R.id.menuProperties).visibility = View.GONE
-        }
-
         view.findViewById<View>(R.id.menuDelete).setOnClickListener {
             dialog.dismiss()
-            val mediaType = if (item.isVideo) "video" else "audio"
             android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("Delete File")
-                .setMessage("Want to delete this $mediaType?")
+                .setTitle("Delete")
+                .setMessage("Want to delete this media?")
                 .setPositiveButton("Delete") { _, _ ->
-                    android.widget.Toast.makeText(this, "File sent to Recycle Bin", android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Moved to Recycle Bin 🗑️", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
         }
 
-        view.findViewById<View>(R.id.menuShare).setOnClickListener {
-            dialog.dismiss()
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = if (item.isVideo) "video/*" else "audio/*"
-                putExtra(Intent.EXTRA_STREAM, android.net.Uri.parse(item.path))
-            }
-            startActivity(Intent.createChooser(shareIntent, "Share via"))
-        }
-
         view.findViewById<View>(R.id.menuLockVault).setOnClickListener {
             dialog.dismiss()
-            android.widget.Toast.makeText(this, "Moved to Private Vault", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Moved to Private Vault 🔒", Toast.LENGTH_SHORT).show()
         }
 
-        view.findViewById<View>(R.id.menuConvertMp3).setOnClickListener {
+        view.findViewById<View>(R.id.menuShare).setOnClickListener {
+            dialog.dismiss()
+            Toast.makeText(this, "Opening Share Panel...", Toast.LENGTH_SHORT).show()
+        }
+        
+        view.findViewById<View>(R.id.menuConvertToMp3).setOnClickListener {
             dialog.dismiss()
             startActivity(Intent(this, Mp3ConverterActivity::class.java))
         }
