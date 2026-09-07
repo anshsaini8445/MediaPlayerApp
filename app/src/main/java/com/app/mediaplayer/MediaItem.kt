@@ -7,8 +7,3 @@ data class MediaItem(
     val duration: Long = 0L,
     val isVideo: Boolean
 )
-
-data class MediaFolder(
-    val name: String,
-    val mediaItems: List<MediaItem>
-)
