@@ -190,21 +190,23 @@ class MainActivity : AppCompatActivity() {
         videoList.clear()
         audioList.clear()
 
-        val videoProjection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION)
+        val videoProjection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DATA)
         contentResolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
             val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)
             val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
+            
             while (cursor.moveToNext()) {
                 videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), true))
             }
         }
 
-        val audioProjection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DURATION)
+        val audioProjection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA)
         contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audioProjection, null, null, null)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val pathCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+            
             while (cursor.moveToNext()) {
                 audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), false))
             }
@@ -238,18 +240,29 @@ class MainActivity : AppCompatActivity() {
     private fun showItemsInFolder(itemsToShow: List<MediaItem>) {
         recyclerView.layoutManager = if (isGridView) GridLayoutManager(this, 2) else LinearLayoutManager(this)
         
-        // Adapter logic updated to pass onMoreClick properly
-        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView, 
-            onClick = { item ->
-                currentMediaList = itemsToShow
-                val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
-                val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
-                startActivity(intent)
-            }, 
-            onMoreClick = { item ->
-                showMediaOptionsDialog(item)
+        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView) { item ->
+            currentMediaList = itemsToShow
+            val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
+            val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
+            startActivity(intent)
+        }
+
+        // MASTER TRICK: 3-Dot मेनू बिना MediaAdapter को छेड़े, वीडियो पर लॉन्ग प्रेस (Long Press) करने से खुलेगा।
+        recyclerView.clearOnChildAttachStateChangeListeners()
+        recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+            override fun onChildViewAttachedToWindow(view: View) {
+                view.setOnLongClickListener {
+                    val position = recyclerView.getChildAdapterPosition(view)
+                    if (position >= 0 && position < itemsToShow.size) {
+                        showMediaOptionsDialog(itemsToShow[position])
+                    }
+                    true
+                }
             }
-        )
+            override fun onChildViewDetachedFromWindow(view: View) {
+                view.setOnLongClickListener(null)
+            }
+        })
     }
 
     private fun showMediaOptionsDialog(item: MediaItem) {
@@ -259,7 +272,6 @@ class MainActivity : AppCompatActivity() {
 
         view.findViewById<TextView>(R.id.menuMediaTitle).text = item.title
 
-        // Video aur Audio ke alag-alag options hide karna
         if (item.isVideo) {
             view.findViewById<View>(R.id.menuSetRingtone).visibility = View.GONE
         } else {
@@ -267,7 +279,6 @@ class MainActivity : AppCompatActivity() {
             view.findViewById<View>(R.id.menuProperties).visibility = View.GONE
         }
 
-        // Action Clicks
         view.findViewById<View>(R.id.menuDelete).setOnClickListener {
             dialog.dismiss()
             val mediaType = if (item.isVideo) "video" else "audio"
