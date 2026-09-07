@@ -1,7 +1,6 @@
 package com.app.mediaplayer
 
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
+import android.content.Intent
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -12,25 +11,19 @@ class PlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        player = ExoPlayer.Builder(this)
-            .setAudioAttributes(AudioAttributes.Builder()
-                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                .setUsage(C.USAGE_MEDIA)
-                .build(), true)
-            .setHandleAudioBecomingNoisy(true) // Earphone nikalne par pause hoga
-            .build()
-        
-        // Media3 ka sabse powerful feature: Notification khud banata hai
+        player = ExoPlayer.Builder(this).build()
         mediaSession = MediaSession.Builder(this, player!!).build()
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        return mediaSession
+    }
 
     override fun onDestroy() {
-        mediaSession?.release()
-        mediaSession = null
-        player?.release()
-        player = null
+        mediaSession?.run {
+            player.release()
+            release()
+        }
         super.onDestroy()
     }
 }
