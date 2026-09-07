@@ -201,7 +201,9 @@ class MainActivity : AppCompatActivity() {
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
 
             while (cursor.moveToNext()) {
-                videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), cursor.getLong(durationCol), true))
+                val path = cursor.getString(pathCol)
+                // FIX: Pass size explicitly. We will calculate size in adapter if needed, passing 0L here.
+                videoList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", path, cursor.getLong(durationCol), true))
             }
         }
 
@@ -213,7 +215,9 @@ class MainActivity : AppCompatActivity() {
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
 
             while (cursor.moveToNext()) {
-                audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", cursor.getString(pathCol), cursor.getLong(durationCol), false))
+                val path = cursor.getString(pathCol)
+                // FIX: Pass size explicitly.
+                audioList.add(MediaItem(cursor.getLong(idCol), cursor.getString(titleCol) ?: "Unknown", path, cursor.getLong(durationCol), false))
             }
         }
         bottomNav.selectedItemId = R.id.nav_video
@@ -245,11 +249,12 @@ class MainActivity : AppCompatActivity() {
     private fun showItemsInFolder(itemsToShow: List<MediaItem>) {
         recyclerView.layoutManager = if (isGridView) GridLayoutManager(this, 2) else LinearLayoutManager(this)
         
-        recyclerView.adapter = MediaAdapter(itemsToShow, isGridView, 
-            onMoreClick = { item ->
-                showMediaOptionsDialog(item)
-            },
-            onClick = { item ->
+        // FIX: Correctly mapping the arguments for MediaAdapter
+        recyclerView.adapter = MediaAdapter(
+            itemsToShow, 
+            isGridView,
+            { item -> showMediaOptionsDialog(item) }, // onMoreClick
+            { item -> // onClick
                 currentMediaList = itemsToShow
                 val targetActivity = if (item.isVideo) PlayerActivity::class.java else AudioPlayerActivity::class.java
                 val intent = Intent(this, targetActivity).apply { putExtra("START_INDEX", itemsToShow.indexOf(item)) }
@@ -271,7 +276,7 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Delete")
                 .setMessage("Want to delete this media?")
                 .setPositiveButton("Delete") { _, _ ->
-                    Toast.makeText(this, "Moved to Recycle Bin 🗑️", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Moved to Recycle Bin \uD83D\uDDD1\uFE0F", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -279,7 +284,7 @@ class MainActivity : AppCompatActivity() {
 
         view.findViewById<View>(R.id.menuLockVault).setOnClickListener {
             dialog.dismiss()
-            Toast.makeText(this, "Moved to Private Vault 🔒", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Moved to Private Vault \uD83D\uDD12", Toast.LENGTH_SHORT).show()
         }
 
         view.findViewById<View>(R.id.menuShare).setOnClickListener {
