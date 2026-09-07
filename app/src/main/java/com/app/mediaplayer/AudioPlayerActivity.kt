@@ -1,70 +1,41 @@
 package com.app.mediaplayer
 
-import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.widget.ImageButton
+import android.widget.RelativeLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.session.MediaController
-import androidx.media3.session.SessionToken
-import java.util.Locale
+import androidx.media3.exoplayer.ExoPlayer
 
 class AudioPlayerActivity : AppCompatActivity() {
-
-    private var player: Player? = null
-    private var mediaController: MediaController? = null
+    private var player: ExoPlayer? = null
     private lateinit var tvTitle: TextView
-    private lateinit var tvCurrent: TextView
-    private lateinit var tvTotal: TextView
     private lateinit var seekBar: SeekBar
     private lateinit var btnPlayPause: ImageButton
     
-    // NAYA: 3-Tap Logic Variables
     private var tapCount = 0
     private var lastTapTime: Long = 0
-    
-    private val handler = Handler(Looper.getMainLooper())
-    private val updateProgressRunnable = object : Runnable {
-        override fun run() {
-            player?.let {
-                tvCurrent.text = formatTime(it.currentPosition)
-                seekBar.progress = it.currentPosition.toInt()
-            }
-            handler.postDelayed(this, 1000)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_player)
 
         tvTitle = findViewById(R.id.tvAudioTitle)
-        tvCurrent = findViewById(R.id.tvAudioCurrent)
-        tvTotal = findViewById(R.id.tvAudioTotal)
         seekBar = findViewById(R.id.seekAudio)
         btnPlayPause = findViewById(R.id.btnAudioPlayPause)
 
-        findViewById<ImageButton>(R.id.btnBackAudio).setOnClickListener { finish() }
-        
-        findViewById<TextView>(R.id.btnEqAudio).setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
-        findViewById<TextView>(R.id.btnShuffleAudio).setOnClickListener { Toast.makeText(this, "Shuffle Mode", Toast.LENGTH_SHORT).show() }
-        findViewById<TextView>(R.id.btnTimerAudio).setOnClickListener { Toast.makeText(this, "Sleep Timer Set", Toast.LENGTH_SHORT).show() }
-        findViewById<TextView>(R.id.btnRepeatAudio).setOnClickListener { Toast.makeText(this, "Repeat Mode", Toast.LENGTH_SHORT).show() }
-        findViewById<TextView>(R.id.btnPlaylistAudio).setOnClickListener { Toast.makeText(this, "Opening Playlist", Toast.LENGTH_SHORT).show() }
+        setupPlayer()
 
-        // NAYA: 3-Tap to Premium Logic (Background Image par click karne par)
-        findViewById<androidx.cardview.widget.CardView>(R.id.cardAlbumArt)?.setOnClickListener {
+        // 3-Tap Logic for Premium Page
+        findViewById<RelativeLayout>(R.id.audioRootView).setOnClickListener {
             val currentTime = System.currentTimeMillis()
-            if (currentTime - lastTapTime < 500) { // Half second gap
+            if (currentTime - lastTapTime < 600) {
                 tapCount++
                 if (tapCount == 3) {
                     tapCount = 0
@@ -75,87 +46,58 @@ class AudioPlayerActivity : AppCompatActivity() {
             }
             lastTapTime = currentTime
         }
-    }
 
-    override fun onStart() {
-        super.onStart()
-        val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
-        val future = MediaController.Builder(this, sessionToken).buildAsync()
-        
-        future.addListener({
-            mediaController = future.get()
-            player = mediaController
-            setupPlayer()
-        }, ContextCompat.getMainExecutor(this))
+        findViewById<TextView>(R.id.btnTimerAudio).setOnClickListener { Toast.makeText(this, "Sleep Timer", Toast.LENGTH_SHORT).show() }
+        findViewById<TextView>(R.id.btnShuffleAudio).setOnClickListener { Toast.makeText(this, "Shuffle Mode", Toast.LENGTH_SHORT).show() }
+        findViewById<TextView>(R.id.btnPlaylistAudio).setOnClickListener { Toast.makeText(this, "Playlist", Toast.LENGTH_SHORT).show() }
+        findViewById<TextView>(R.id.btnMenuAudio).setOnClickListener { Toast.makeText(this, "Options Menu", Toast.LENGTH_SHORT).show() }
+
+        btnPlayPause.setOnClickListener {
+            if (player?.isPlaying == true) player?.pause() else player?.play()
+            updatePlayButton()
+        }
+        findViewById<ImageButton>(R.id.btnAudioPrev).setOnClickListener { player?.seekToPreviousMediaItem() }
+        findViewById<ImageButton>(R.id.btnAudioNext).setOnClickListener { player?.seekToNextMediaItem() }
     }
 
     private fun setupPlayer() {
+        player = ExoPlayer.Builder(this).build()
         val mediaList = MainActivity.currentMediaList
         val startIndex = intent.getIntExtra("START_INDEX", 0)
 
         if (mediaList.isNotEmpty()) {
-            if (player?.mediaItemCount != mediaList.size) {
-                val exoItems = mediaList.map { 
-                    MediaItem.Builder()
-                        .setUri(it.path)
-                        .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
-                        .build() 
-                }
-                player?.setMediaItems(exoItems, startIndex, 0L)
-                player?.prepare()
-                player?.play()
-            } else if (player?.currentMediaItemIndex != startIndex) {
-                player?.seekTo(startIndex, 0L)
-                player?.play()
+            val exoItems = mediaList.map {
+                MediaItem.Builder()
+                    .setUri(it.path)
+                    .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
+                    .build()
             }
+            player?.setMediaItems(exoItems, startIndex, 0L)
+            player?.prepare()
+            player?.play()
+            updatePlayButton()
         }
 
         player?.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 tvTitle.text = mediaItem?.mediaMetadata?.title?.toString() ?: "Unknown Audio"
-                player?.let {
-                    seekBar.max = it.duration.toInt()
-                    tvTotal.text = formatTime(it.duration)
-                }
             }
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isPlaying) {
-                    btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
-                    handler.post(updateProgressRunnable)
-                } else {
-                    btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
-                    handler.removeCallbacks(updateProgressRunnable)
-                }
+                updatePlayButton()
             }
         })
+    }
 
-        btnPlayPause.setOnClickListener {
-            if (player?.isPlaying == true) player?.pause() else player?.play()
+    private fun updatePlayButton() {
+        if (player?.isPlaying == true) {
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+        } else {
+            btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
         }
-
-        findViewById<ImageButton>(R.id.btnAudioPrev).setOnClickListener { player?.seekToPreviousMediaItem() }
-        findViewById<ImageButton>(R.id.btnAudioNext).setOnClickListener { player?.seekToNextMediaItem() }
-
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) player?.seekTo(progress.toLong())
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
     }
 
-    private fun formatTime(ms: Long): String {
-        if (ms < 0) return "00:00"
-        val totalSecs = ms / 1000
-        val mins = totalSecs / 60
-        val secs = totalSecs % 60
-        return String.format(Locale.getDefault(), "%02d:%02d", mins, secs)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        handler.removeCallbacks(updateProgressRunnable)
-        mediaController?.release()
+    override fun onDestroy() {
+        super.onDestroy()
+        player?.release()
     }
 }
