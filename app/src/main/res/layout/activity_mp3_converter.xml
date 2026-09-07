@@ -2,56 +2,51 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#111111"
+    android:background="#0D0D1A"
     android:orientation="vertical"
     android:padding="24dp"
     android:gravity="center">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🎧 Video to MP3 PRO"
-        android:textColor="#FF671F"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
-
     <ImageView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:src="@android:drawable/ic_media_play"
-        app:tint="#FFB300"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_marginBottom="24dp"/>
+        android:tint="#00E5FF"
+        android:layout_marginBottom="16dp"/>
 
     <TextView
-        android:id="@+id/tvConvertStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select a video to extract 320kbps High-Quality Audio"
+        android:text="Video to MP3 Converter"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvSelectedFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No video selected"
         android:textColor="#AAAAAA"
         android:textSize="16sp"
-        android:textAlignment="center"
-        android:layout_marginBottom="24dp"/>
-
-    <ProgressBar
-        android:id="@+id/progressConvert"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="8dp"
-        android:progressTint="#00E676"
-        android:max="100"
-        android:progress="0"
-        android:layout_marginBottom="32dp"
-        android:visibility="gone"/>
+        android:layout_marginBottom="32dp"/>
 
     <Button
-        android:id="@+id/btnStartConvert"
+        android:id="@+id/btnSelectVideo"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Start Extraction"
+        android:layout_height="50dp"
+        android:text="Select Video"
+        android:backgroundTint="#333333"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:backgroundTint="#FF671F"/>
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnConvertMp3"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="CONVERT TO MP3"
+        android:backgroundTint="#FF671F"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"/>
 </LinearLayout>
