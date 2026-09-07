@@ -10,29 +10,13 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher_full"
+        android:icon="@drawable/ic_launcher_background"
         android:label="MAX Player PRO"
-        android:roundIcon="@drawable/ic_launcher_full"
+        android:roundIcon="@drawable/ic_launcher_background"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <activity android:name=".PremiumActivity" android:exported="false" android:screenOrientation="portrait" />
-        <activity android:name=".AudioPlayerActivity" android:exported="false" android:screenOrientation="portrait" />
-        
-        <activity
-            android:name=".PlayerActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
-            android:resizeableActivity="true"
-            android:supportsPictureInPicture="true" />
-
-        <!-- Saari VIP Activities -->
-        <activity android:name=".VaultActivity" android:screenOrientation="portrait" />
-        <activity android:name=".EqualizerActivity" android:screenOrientation="portrait" />
-        <activity android:name=".ThemeActivity" android:screenOrientation="portrait" />
-        <activity android:name=".RecycleBinActivity" android:screenOrientation="portrait" />
-        <activity android:name=".Mp3ConverterActivity" android:screenOrientation="portrait" />
-
+        <!-- Main Screen -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -42,13 +26,17 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".PlaybackService"
-            android:foregroundServiceType="mediaPlayback"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
-            </intent-filter>
-        </service>
+        <!-- Player Screens -->
+        <activity android:name=".PlayerActivity" android:exported="false" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize" android:resizeableActivity="true" android:supportsPictureInPicture="true" />
+        <activity android:name=".AudioPlayerActivity" android:exported="false" android:screenOrientation="portrait" />
+
+        <!-- All VIP Features Screens -->
+        <activity android:name=".PremiumActivity" android:screenOrientation="portrait" />
+        <activity android:name=".VaultActivity" android:screenOrientation="portrait" />
+        <activity android:name=".EqualizerActivity" android:screenOrientation="portrait" />
+        <activity android:name=".ThemeActivity" android:screenOrientation="portrait" />
+        <activity android:name=".RecycleBinActivity" android:screenOrientation="portrait" />
+        <activity android:name=".Mp3ConverterActivity" android:screenOrientation="portrait" />
+
     </application>
 </manifest>
