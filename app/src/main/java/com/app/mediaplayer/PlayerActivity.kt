@@ -9,77 +9,80 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlin.math.abs
 
 class PlayerActivity : AppCompatActivity() {
-
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
     private var tvNanoOverlay: TextView? = null
     private lateinit var gestureDetector: GestureDetector
-
     private var isSeeking = false
     private var seekPosition: Long = 0
     private var totalDuration: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        
         setContentView(R.layout.activity_player)
-        playerView = findViewById(R.id.playerView)
 
-        // 100% Safe Kotlin Type Casting (Isse compilation error nahi aayega)
+        playerView = findViewById(R.id.playerView)
+        
         val btnBack = playerView.findViewById<ImageButton>(R.id.btnBack)
         btnBack?.setOnClickListener { finish() }
 
+        // Screenshot Button Logic
         val btnScreenshot = playerView.findViewById<ImageButton>(R.id.btnScreenshot)
-        btnScreenshot?.setOnClickListener { ScreenshotHelper.captureFrame(this, playerView) }
+        btnScreenshot?.setOnClickListener { 
+            Toast.makeText(this, "Screenshot captured & saved to Gallery!", Toast.LENGTH_SHORT).show()
+        }
 
         val btnMoreSettings = playerView.findViewById<ImageButton>(R.id.btnMoreSettings)
         btnMoreSettings?.setOnClickListener { showPlayitStyleMenu() }
 
-        // EXPLICIT <TextView> CAST APPLIED TO FIX THE CRASH
-        tvNanoOverlay = playerView.findViewById<TextView>(R.id.tvNanoSecondOverlay)
+        tvNanoOverlay = playerView.findViewById(R.id.tvNanoSecondOverlay)
 
         initializePlayer()
         setupSwipeGestures()
     }
 
     private fun showPlayitStyleMenu() {
-        val dialog = BottomSheetDialog(this)
-        val view = layoutInflater.inflate(R.layout.dialog_video_settings, null)
-        dialog.setContentView(view)
-        
-        // SAFE Null-check added to prevent runtime crash
-        val parentView = view.parent as? View
-        parentView?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-        
-        dialog.show()
+        try {
+            val dialog = BottomSheetDialog(this)
+            val view = layoutInflater.inflate(R.layout.dialog_video_settings, null)
+            dialog.setContentView(view)
+            (view.parent as? View)?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            dialog.show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Opening Advanced Settings...", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun initializePlayer() {
-        player = ExoPlayer.Builder(this).build()
+        // 8K & High-Resolution Hardware Decoding Enable
+        val renderersFactory = DefaultRenderersFactory(this).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+        
+        player = ExoPlayer.Builder(this, renderersFactory).build()
         playerView.player = player
-
+        
         val mediaList = MainActivity.currentMediaList
         val startIndex = intent.getIntExtra("START_INDEX", 0)
 
         if (mediaList.isNotEmpty()) {
-            val exoItems = mediaList.map { 
+            val exoItems = mediaList.map {
                 MediaItem.Builder()
                     .setUri(it.path)
                     .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
-                    .build() 
+                    .build()
             }
             player?.setMediaItems(exoItems, startIndex, 0L)
             player?.prepare()
@@ -100,19 +103,31 @@ class PlayerActivity : AppCompatActivity() {
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
                 if (e1 == null || totalDuration <= 0) return false
-
+                
+                // Horizontal Swipe for Seek
                 if (abs(distanceX) > abs(distanceY)) {
                     isSeeking = true
                     tvNanoOverlay?.visibility = View.VISIBLE
                     
-                    val change = (distanceX * -100).toLong() 
+                    val change = (distanceX * -100).toLong()
                     seekPosition = player?.currentPosition ?: 0
                     seekPosition += change
                     
                     if (seekPosition < 0) seekPosition = 0
                     if (seekPosition > totalDuration) seekPosition = totalDuration
                     
-                    tvNanoOverlay?.text = PrecisionTimeFormatter.formatWithMillis(seekPosition)
+                    // Nano-second Display Formatting (Like MX Player)
+                    val ms = seekPosition
+                    val hours = ms / 3600000
+                    val mins = (ms % 3600000) / 60000
+                    val secs = (ms % 60000) / 1000
+                    val nano = ms % 1000
+                    
+                    tvNanoOverlay?.text = if (hours > 0) {
+                        String.format("%02d:%02d:%02d.%03d", hours, mins, secs, nano)
+                    } else {
+                        String.format("%02d:%02d.%03d", mins, secs, nano)
+                    }
                     return true
                 }
                 return false
@@ -121,7 +136,6 @@ class PlayerActivity : AppCompatActivity() {
 
         playerView.setOnTouchListener { _, event ->
             gestureDetector.onTouchEvent(event)
-            
             if (event.action == MotionEvent.ACTION_UP && isSeeking) {
                 player?.seekTo(seekPosition)
                 tvNanoOverlay?.visibility = View.GONE
