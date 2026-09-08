@@ -35,31 +35,6 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <!-- NAYA: Audio Only Button (PLAYit Jaisa) -->
-        <LinearLayout
-            android:id="@+id/btnAudioOnly"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:gravity="center_vertical"
-            android:background="?attr/selectableItemBackground"
-            android:padding="4dp"
-            android:orientation="horizontal">
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@android:drawable/ic_lock_silent_mode_off"
-                app:tint="#FFFFFF"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Audio Only"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:layout_marginStart="6dp"/>
-        </LinearLayout>
-
         <ImageButton
             android:id="@+id/btnScreenshot"
             android:layout_width="32dp"
@@ -78,7 +53,6 @@
             app:tint="#FFFFFF" />
     </LinearLayout>
 
-    <!-- Left Side Lock Button -->
     <ImageButton
         android:id="@+id/btnLock"
         android:layout_width="40dp"
@@ -89,7 +63,6 @@
         android:src="@android:drawable/ic_secure"
         app:tint="#FFFFFF" />
 
-    <!-- Center Play Controls -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -142,7 +115,6 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <!-- Bottom Seekbar Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
