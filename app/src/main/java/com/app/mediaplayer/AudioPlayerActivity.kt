@@ -1,57 +1,197 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#111111">
+package com.app.mediaplayer
 
-    <LinearLayout
-        android:id="@+id/topBarAudio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
-        <ImageButton android:id="@+id/btnBackAudio" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_menu_revert" app:tint="#FFFFFF"/>
-        <TextView android:id="@+id/tvAudioTitle" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="Song Title" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" android:singleLine="true" android:ellipsize="marquee" android:marqueeRepeatLimit="marquee_forever"/>
-        <ImageButton android:id="@+id/btnAudioSettings" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_menu_more" app:tint="#FFFFFF"/>
-    </LinearLayout>
+import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.Intent
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.View
+import android.widget.ImageButton
+import android.widget.SeekBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import androidx.media3.common.MediaItem as ExoMediaItem
+import java.util.Locale
+import kotlin.math.abs
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardAlbumArt"
-        android:layout_width="280dp"
-        android:layout_height="280dp"
-        android:layout_below="@id/topBarAudio"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
-        app:cardCornerRadius="140dp"
-        app:cardBackgroundColor="#2A2A30"
-        app:cardElevation="10dp">
-        <ImageView android:id="@+id/imgAlbumArt" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:src="@android:drawable/ic_media_play"/>
-    </androidx.cardview.widget.CardView>
+class AudioPlayerActivity : AppCompatActivity() {
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="vertical"
-        android:padding="24dp">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="5" android:layout_marginBottom="24dp">
-            <TextView android:id="@+id/btnEqAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="🎛️" android:textSize="22sp" android:gravity="center"/>
-            <TextView android:id="@+id/btnShuffleAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="🔀" android:textSize="22sp" android:gravity="center"/>
-            <TextView android:id="@+id/btnTimerAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="⏱️" android:textSize="22sp" android:gravity="center"/>
-            <TextView android:id="@+id/btnRepeatAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="🔁" android:textSize="22sp" android:gravity="center"/>
-            <TextView android:id="@+id/btnPlaylistAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="📋" android:textSize="22sp" android:gravity="center"/>
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-            <TextView android:id="@+id/tvAudioCurrent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="00:00" android:textColor="#AAAAAA"/>
-            <SeekBar android:id="@+id/seekAudio" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:progressTint="#FF671F" android:thumbTint="#FF671F"/>
-            <TextView android:id="@+id/tvAudioTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="00:00" android:textColor="#AAAAAA"/>
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="8dp">
-            <ImageButton android:id="@+id/btnAudioPrev" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_media_previous" app:tint="#FFFFFF" android:layout_marginEnd="32dp"/>
-            <ImageButton android:id="@+id/btnAudioPlayPause" android:layout_width="72dp" android:layout_height="72dp" android:background="@drawable/ic_launcher_background" android:src="@android:drawable/ic_media_play" app:tint="#FFFFFF"/>
-            <ImageButton android:id="@+id/btnAudioNext" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_media_next" app:tint="#FFFFFF" android:layout_marginStart="32dp"/>
-        </LinearLayout>
-    </LinearLayout>
-</RelativeLayout>
+    private var player: Player? = null
+    private var mediaController: MediaController? = null
+    private var tvTitle: TextView? = null
+    private var tvCurrent: TextView? = null
+    private var tvTotal: TextView? = null
+    private var seekBar: SeekBar? = null
+    private var btnPlayPause: ImageButton? = null
+    
+    private lateinit var gestureDetector: GestureDetector
+    private var isSeeking = false
+    private var seekPosition: Long = 0
+    private var totalDuration: Long = 0
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val updateProgressRunnable = object : Runnable {
+        override fun run() {
+            if (!isSeeking) {
+                player?.let { p ->
+                    tvCurrent?.text = formatTime(p.currentPosition)
+                    seekBar?.progress = p.currentPosition.toInt()
+                }
+            }
+            handler.postDelayed(this, 1000)
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_audio_player)
+
+        tvTitle = findViewById(R.id.tvAudioTitle)
+        tvCurrent = findViewById(R.id.tvAudioCurrent)
+        tvTotal = findViewById(R.id.tvAudioTotal)
+        seekBar = findViewById(R.id.seekAudio)
+        btnPlayPause = findViewById(R.id.btnAudioPlayPause)
+
+        findViewById<ImageButton>(R.id.btnBackAudio)?.setOnClickListener { finish() }
+        findViewById<TextView>(R.id.btnEqAudio)?.setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
+        findViewById<TextView>(R.id.btnShuffleAudio)?.setOnClickListener { Toast.makeText(this, "Shuffle Mode", Toast.LENGTH_SHORT).show() }
+        
+        setupSwipeGestures()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
+        val future = MediaController.Builder(this, sessionToken).buildAsync()
+        
+        future.addListener({
+            mediaController = future.get()
+            player = mediaController
+            setupPlayer()
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun setupPlayer() {
+        val mediaList = MainActivity.currentMediaList
+        val startIndex = intent.getIntExtra("START_INDEX", 0)
+
+        if (mediaList.isNotEmpty()) {
+            if (player?.mediaItemCount != mediaList.size) {
+                val exoItems = mediaList.map { 
+                    ExoMediaItem.Builder()
+                        .setUri(it.path)
+                        .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
+                        .build() 
+                }
+                player?.setMediaItems(exoItems, startIndex, 0L)
+                player?.prepare()
+                player?.play()
+            } else if (player?.currentMediaItemIndex != startIndex) {
+                player?.seekTo(startIndex, 0L)
+                player?.play()
+            }
+        }
+
+        player?.addListener(object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
+                tvTitle?.text = mediaItem?.mediaMetadata?.title?.toString() ?: "Unknown Audio"
+                player?.let {
+                    totalDuration = it.duration
+                    if(totalDuration > 0) {
+                        seekBar?.max = totalDuration.toInt()
+                        tvTotal?.text = formatTime(totalDuration)
+                    }
+                }
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) {
+                    btnPlayPause?.setImageResource(android.R.drawable.ic_media_pause)
+                    handler.post(updateProgressRunnable)
+                } else {
+                    btnPlayPause?.setImageResource(android.R.drawable.ic_media_play)
+                    handler.removeCallbacks(updateProgressRunnable)
+                }
+            }
+        })
+
+        btnPlayPause?.setOnClickListener {
+            if (player?.isPlaying == true) player?.pause() else player?.play()
+        }
+
+        findViewById<ImageButton>(R.id.btnAudioPrev)?.setOnClickListener { player?.seekToPreviousMediaItem() }
+        findViewById<ImageButton>(R.id.btnAudioNext)?.setOnClickListener { player?.seekToNextMediaItem() }
+
+        seekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    tvCurrent?.text = formatTime(progress.toLong())
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                isSeeking = true
+            }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                isSeeking = false
+                seekBar?.let { player?.seekTo(it.progress.toLong()) }
+            }
+        })
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupSwipeGestures() {
+        gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+                if (e1 == null || totalDuration <= 0) return false
+
+                if (abs(distanceX) > abs(distanceY)) {
+                    isSeeking = true
+                    val change = (distanceX * -100).toLong() 
+                    seekPosition = player?.currentPosition ?: 0
+                    seekPosition += change
+                    
+                    if (seekPosition < 0) seekPosition = 0
+                    if (seekPosition > totalDuration) seekPosition = totalDuration
+                    
+                    tvCurrent?.text = formatTime(seekPosition)
+                    seekBar?.progress = seekPosition.toInt()
+                    return true
+                }
+                return false
+            }
+        })
+
+        findViewById<CardView>(R.id.cardAlbumArt)?.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            if (event.action == MotionEvent.ACTION_UP && isSeeking) {
+                player?.seekTo(seekPosition)
+                isSeeking = false
+            }
+            true 
+        }
+    }
+
+    private fun formatTime(ms: Long): String {
+        if (ms < 0) return "00:00"
+        val totalSecs = ms / 1000
+        val mins = totalSecs / 60
+        val secs = totalSecs % 60
+        return String.format(Locale.getDefault(), "%02d:%02d", mins, secs)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        handler.removeCallbacks(updateProgressRunnable)
+        mediaController?.release()
+    }
+}
