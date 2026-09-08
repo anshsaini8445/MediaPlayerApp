@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
@@ -35,14 +34,12 @@ class PlayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         
         try {
-            // Screen ko full-screen aur landscape karna
             window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             
             setContentView(R.layout.activity_player)
             playerView = findViewById(R.id.playerView)
 
-            // Safe UI Bindings (Crash Fix)
             val btnBack = playerView.findViewById<ImageButton>(R.id.btnBack)
             btnBack?.setOnClickListener { finish() }
 
@@ -52,17 +49,6 @@ class PlayerActivity : AppCompatActivity() {
             val btnMoreSettings = playerView.findViewById<ImageButton>(R.id.btnMoreSettings)
             btnMoreSettings?.setOnClickListener { showPlayitStyleMenu() }
 
-            // NAYA: Audio Only Button ka Logic
-            val btnAudioOnly = playerView.findViewById<LinearLayout>(R.id.btnAudioOnly)
-            btnAudioOnly?.setOnClickListener {
-                val startIndex = intent.getIntExtra("START_INDEX", 0)
-                val audioIntent = Intent(this, AudioPlayerActivity::class.java).apply {
-                    putExtra("START_INDEX", startIndex)
-                }
-                startActivity(audioIntent)
-                finish() // Video player band karke audio player khol dega
-            }
-
             tvNanoOverlay = playerView.findViewById<TextView>(R.id.tvNanoSecondOverlay)
 
             initializePlayer()
@@ -70,7 +56,6 @@ class PlayerActivity : AppCompatActivity() {
             
         } catch (e: Exception) {
             e.printStackTrace()
-            // Agar koi error aata hai toh app gande tarike se crash nahi hogi, balki safely home page par wapas aa jayegi.
             finish() 
         }
     }
@@ -85,9 +70,7 @@ class PlayerActivity : AppCompatActivity() {
             parentView?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             
             dialog.show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
     private fun initializePlayer() {
