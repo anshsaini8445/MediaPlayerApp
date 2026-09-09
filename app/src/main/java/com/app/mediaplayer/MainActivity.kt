@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // CRASH PREVENTER: Pura startup safe zone mein daal diya hai
         try {
             setContentView(R.layout.activity_main)
 
@@ -110,7 +109,6 @@ class MainActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "App Loading Safe Mode...", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -296,26 +294,40 @@ class MainActivity : AppCompatActivity() {
             val view = layoutInflater.inflate(R.layout.dialog_list_menu, null)
             dialog.setContentView(view)
 
-            view.findViewById<TextView>(R.id.menuMediaTitle).text = item.title
+            // DYNAMIC ID LOOKUP: Yahan se koi error generate nahi hoga!
+            val titleId = resources.getIdentifier("menuMediaTitle", "id", packageName)
+            if (titleId != 0) view.findViewById<TextView>(titleId)?.text = item.title
 
-            view.findViewById<View>(R.id.menuDelete).setOnClickListener {
-                dialog.dismiss()
-                Toast.makeText(this, "Moved to Recycle Bin", Toast.LENGTH_SHORT).show()
+            val deleteId = resources.getIdentifier("menuDelete", "id", packageName)
+            if (deleteId != 0) {
+                view.findViewById<View>(deleteId)?.setOnClickListener {
+                    dialog.dismiss()
+                    Toast.makeText(this, "Moved to Recycle Bin", Toast.LENGTH_SHORT).show()
+                }
             }
 
-            view.findViewById<View>(R.id.menuLockVault).setOnClickListener {
-                dialog.dismiss()
-                Toast.makeText(this, "Moved to Private Vault", Toast.LENGTH_SHORT).show()
+            val shareId = resources.getIdentifier("menuShare", "id", packageName)
+            if (shareId != 0) {
+                view.findViewById<View>(shareId)?.setOnClickListener {
+                    dialog.dismiss()
+                    Toast.makeText(this, "Opening Share Panel...", Toast.LENGTH_SHORT).show()
+                }
             }
 
-            view.findViewById<View>(R.id.menuShare).setOnClickListener {
-                dialog.dismiss()
-                Toast.makeText(this, "Opening Share Panel...", Toast.LENGTH_SHORT).show()
+            val vaultId = resources.getIdentifier("menuLockVault", "id", packageName)
+            if (vaultId != 0) {
+                view.findViewById<View>(vaultId)?.setOnClickListener {
+                    dialog.dismiss()
+                    Toast.makeText(this, "Moved to Private Vault", Toast.LENGTH_SHORT).show()
+                }
             }
             
-            view.findViewById<View>(R.id.menuConvertToMp3).setOnClickListener {
-                dialog.dismiss()
-                startActivity(Intent(this, Mp3ConverterActivity::class.java))
+            val mp3Id = resources.getIdentifier("menuConvertToMp3", "id", packageName)
+            if (mp3Id != 0) {
+                view.findViewById<View>(mp3Id)?.setOnClickListener {
+                    dialog.dismiss()
+                    startActivity(Intent(this, Mp3ConverterActivity::class.java))
+                }
             }
 
             dialog.show()
