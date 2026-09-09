@@ -2,31 +2,57 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#181818"
+    android:background="#1B1C26"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="20dp">
 
+    <!-- Media Name -->
     <TextView
         android:id="@+id/menuMediaTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Media Title"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textColor="#00E5FF"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"
-        android:ellipsize="marquee"
-        android:singleLine="true" />
+        android:singleLine="true"
+        android:ellipsize="marquee"/>
 
-    <TextView android:id="@+id/menuPlayNow" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="▶   Play now" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuPlayNext" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="⏭   Play next" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuRingtone" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="🔔   Set as ringtone" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuAddToPlaylist" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="➕   Add to playlist" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuTransfer" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="🔁   File Transfer" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuPrivacy" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="🔒   Move into Privacy Folder" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuRename" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="✏️   Rename" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuFavorite" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="⭐   Favorite" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuDelete" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="🗑️   Delete" android:textColor="#FF5252" android:textSize="15sp" />
-    <TextView android:id="@+id/menuFileInfo" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="ℹ️   File info" android:textColor="#E0E0E0" android:textSize="15sp" />
-    <TextView android:id="@+id/menuShare" android:layout_width="match_parent" android:layout_height="44dp" android:gravity="center_vertical" android:text="↗️   Share" android:textColor="#E0E0E0" android:textSize="15sp" />
+    <!-- PLAYit Style Options -->
+    <TextView
+        android:id="@+id/menuShare"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📤 Share"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:paddingVertical="14dp"/>
+
+    <TextView
+        android:id="@+id/menuPlayAudio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🎧 Play as Audio"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:paddingVertical="14dp"/>
+
+    <TextView
+        android:id="@+id/menuLockVault"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔒 Move to Privacy Folder"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:paddingVertical="14dp"/>
+
+    <TextView
+        android:id="@+id/menuDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🗑️ Delete"
+        android:textColor="#FF4444"
+        android:textSize="16sp"
+        android:paddingVertical="14dp"/>
 </LinearLayout>
