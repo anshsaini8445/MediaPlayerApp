@@ -3,167 +3,101 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F0F0F">
+    android:background="#111111">
 
-    <!-- Top Action Bar (PLAYit Exact Header) -->
-    <RelativeLayout
-        android:id="@+id/topBar"
+    <!-- Top Header & Tabs -->
+    <LinearLayout
+        android:id="@+id/subTabs"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:paddingHorizontal="16dp">
+        android:layout_height="wrap_content"
+        android:background="#1E1E24"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
 
-        <LinearLayout
+        <TextView
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="MAX Player"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MAX Player"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/badgeVip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_circle_outline"
-                android:backgroundTint="#FF9800"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
-                android:text="VIP"
-                android:textColor="#000000"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
+        <TextView
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentEnd="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="#FF671F"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="PRO"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
-            <ImageButton
-                android:id="@+id/btnTopRecycle"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_delete"
-                app:tint="#CCCCCC" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-            <ImageButton
-                android:id="@+id/btnTopSearch"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_search"
-                app:tint="#CCCCCC" />
-
-            <ImageButton
-                android:id="@+id/btnTopDownload"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/stat_sys_download_done"
-                app:tint="#CCCCCC" />
-        </LinearLayout>
-    </RelativeLayout>
-
-    <!-- Sub-tabs & Sorting Row -->
-    <RelativeLayout
-        android:id="@+id/subTabsRow"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_below="@id/topBar"
-        android:paddingHorizontal="16dp">
-
-        <LinearLayout
-            android:id="@+id/subTabs"
+        <TextView
+            android:id="@+id/tabVideo"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="Videos"
+            android:textColor="#2196F3"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tabVideo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Video"
-                android:textColor="#00C853"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tabFolder"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:text="Folder"
-                android:textColor="#888888"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tabPlaylist"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:text="Playlist"
-                android:textColor="#888888"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/tabFolder"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentEnd="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="Folders"
+            android:textColor="#AAAAAA"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <ImageButton
-                android:id="@+id/btnSort"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_sort_by_size"
-                app:tint="#CCCCCC" />
+        <TextView
+            android:id="@+id/tabPlaylist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="Playlists"
+            android:textColor="#AAAAAA"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/btnViewToggle"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:gravity="center"
-                android:text="⊞"
-                android:textColor="#CCCCCC"
-                android:textSize="20sp" />
-        </LinearLayout>
-    </RelativeLayout>
+        <TextView
+            android:id="@+id/btnViewToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="☷"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp" />
+    </LinearLayout>
 
-    <!-- Main Media List / Grid -->
+    <!-- RecyclerView for Media Files -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/bottomNav"
-        android:layout_below="@id/subTabsRow"
-        android:paddingHorizontal="8dp" />
+        android:layout_above="@id/bottomSearchBar"
+        android:layout_below="@id/subTabs"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
 
-    <!-- "ME" / Profile Section (Matching PLAYit Screenshot Exactly) -->
+    <!-- Settings Layout (Hidden by Default) -->
     <ScrollView
         android:id="@+id/settingsLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottomNav"
-        android:layout_below="@id/topBar"
+        android:layout_below="@id/subTabs"
+        android:background="#111111"
         android:visibility="gone">
 
         <LinearLayout
@@ -172,240 +106,112 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Gold VIP Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardVipBanner"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#E69500"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="4dp">
+                android:layout_marginBottom="24dp"
+                android:background="#22FF671F"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_weight="1"
+                    android:text="Upgrade to PRO"
+                    android:textColor="#FF671F"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👑"
+                    android:textSize="24sp" />
+            </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0"
-                                android:textColor="#000000"
-                                android:textSize="20sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="My coin ▶"
-                                android:textColor="#333333"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📋"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Get Coin ▶"
-                                android:textColor="#333333"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="🎁"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Redeem Gift ▶"
-                                android:textColor="#333333"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="36dp"
-                        android:layout_marginTop="16dp"
-                        android:background="#2A2A2A"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="12dp"
-                        android:text="👑 VIP Activated"
-                        android:textColor="#E69500"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 3x3 Tools Grid -->
-            <GridLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:alignmentMode="alignMargins"
-                android:columnCount="3"
-                android:rowCount="3">
+                android:layout_marginBottom="24dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
 
-                <LinearLayout
-                    android:id="@+id/toolDownloads"
+                <TextView
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📥" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Downloads" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
+                    android:text="🎧 MP3"
+                    android:textColor="#FFF"
+                    android:textSize="16sp" />
 
-                <LinearLayout
-                    android:id="@+id/toolMp3"
+                <TextView
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎧" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="MP3 Converter" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
+                    android:text="🎨 Theme"
+                    android:textColor="#FFF"
+                    android:textSize="16sp" />
 
-                <LinearLayout
-                    android:id="@+id/toolPrivacy"
+                <TextView
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔒" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Privacy" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
+                    android:text="🔒 Vault"
+                    android:textColor="#FFF"
+                    android:textSize="16sp" />
+            </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/toolTransfer"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔁" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="File Transfer" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/toolManage"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📁" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Media Manage" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/toolTheme"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👕" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Theme" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/toolHistory"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕒" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="History" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/toolAdFree"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🚫" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ad-Free" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/toolClean"
-                    android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_columnWeight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🧹" android:textSize="24sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Clean 68%" android:textColor="#E0E0E0" android:textSize="12sp" android:layout_marginTop="4dp" />
-                </LinearLayout>
-            </GridLayout>
-
-            <View
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="12dp"
-                android:background="#222222" />
+                android:layout_height="wrap_content"
+                android:paddingVertical="16dp"
+                android:text="🎛️ 15-Band Equalizer"
+                android:textColor="#FFF"
+                android:textSize="18sp" />
 
-            <!-- Me Tab Settings List -->
-            <TextView android:id="@+id/rowSettings" android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical" android:text="⚙️   Settings" android:textColor="#FFFFFF" android:textSize="15sp" />
-            <TextView android:id="@+id/rowRecycleBin" android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical" android:text="🗑️   Recycle Bin" android:textColor="#FFFFFF" android:textSize="15sp" />
-            <TextView android:id="@+id/rowShareVip" android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical" android:text="↗️   Share to get VIP" android:textColor="#FFFFFF" android:textSize="15sp" />
-            <TextView android:id="@+id/rowHelp" android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical" android:text="💬   Help &amp; Feedback" android:textColor="#FFFFFF" android:textSize="15sp" />
-            <TextView android:id="@+id/rowRate" android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical" android:text="👍   Rate us" android:textColor="#FFFFFF" android:textSize="15sp" />
-            <TextView android:id="@+id/rowAbout" android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical" android:text="ℹ️   About" android:textColor="#FFFFFF" android:textSize="15sp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="16dp"
+                android:text="🗑️ Recycle Bin"
+                android:textColor="#FFF"
+                android:textSize="18sp" />
         </LinearLayout>
     </ScrollView>
 
-    <!-- Bottom Navigation Bar (PLAYit Exact: Green Active Color) -->
+    <!-- Bottom Search Bar -->
+    <LinearLayout
+        android:id="@+id/bottomSearchBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/bottomNav"
+        android:background="#2A2A30"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔍 Search audio, video..."
+            android:textColor="#AAAAAA"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Bottom Navigation (Neon Blue Color applied here) -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#141414"
+        android:background="#1E1E24"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
         app:menu="@menu/bottom_nav_menu" />
+
 </RelativeLayout>
