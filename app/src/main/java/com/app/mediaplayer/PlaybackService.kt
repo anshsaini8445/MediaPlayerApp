@@ -1,6 +1,5 @@
 package com.app.mediaplayer
 
-import android.content.Intent
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -11,6 +10,7 @@ class PlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        // PLAYit jaisa powerful ExoPlayer engine jo background mein bhi chalega
         player = ExoPlayer.Builder(this).build()
         mediaSession = MediaSession.Builder(this, player!!).build()
     }
@@ -20,10 +20,10 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
-        mediaSession?.run {
-            player.release()
-            release()
-        }
+        player?.release()
+        mediaSession?.release()
+        mediaSession = null
+        player = null
         super.onDestroy()
     }
 }
