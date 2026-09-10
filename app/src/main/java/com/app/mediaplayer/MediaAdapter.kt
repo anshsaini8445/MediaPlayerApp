@@ -25,7 +25,6 @@ class MediaAdapter(
     private val onClick: (MediaItem) -> Unit
 ) : RecyclerView.Adapter<MediaAdapter.MediaViewHolder>() {
 
-    // Background Thread taaki list scroll karte waqt phone hang na ho
     private val executor = Executors.newFixedThreadPool(4)
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -46,28 +45,26 @@ class MediaAdapter(
         try {
             val file = File(item.path)
             val sizeMb = file.length() / (1024 * 1024)
-            holder.tvSubtitle.text = "${sizeMb} MB  •  ${file.parentFile?.name ?: "Unknown"}"
+            val typeStr = if (item.isVideo) "Videos" else "Music"
+            holder.tvSubtitle.text = "${sizeMb} MB  •  $typeStr"
         } catch (e: Exception) {
             holder.tvSubtitle.text = "Unknown Size"
         }
 
-        // Default Icon set karna
         if (item.isVideo) {
             holder.imgThumbnail.setImageResource(android.R.drawable.ic_media_play)
         } else {
             holder.imgThumbnail.setImageResource(android.R.drawable.ic_media_ff) 
         }
 
-        // Tag set karna zaroori hai warna scroll karte waqt photo mix ho jayengi
         holder.imgThumbnail.tag = item.path
 
-        // Background mein asli Photo (Thumbnail) nikalna
         executor.execute {
             try {
                 val retriever = MediaMetadataRetriever()
                 retriever.setDataSource(item.path)
                 val bitmap = if (item.isVideo) {
-                    retriever.getFrameAtTime(1000000) // 1 second aage ki photo
+                    retriever.getFrameAtTime(1000000) 
                 } else {
                     val art = retriever.embeddedPicture
                     if (art != null) BitmapFactory.decodeByteArray(art, 0, art.size) else null
@@ -77,10 +74,11 @@ class MediaAdapter(
                 if (bitmap != null && holder.imgThumbnail.tag == item.path) {
                     mainHandler.post {
                         holder.imgThumbnail.setImageBitmap(bitmap)
+                        holder.imgThumbnail.imageTintList = null 
                     }
                 }
             } catch (e: Exception) {
-                // Ignore corrupt files
+                // Background thread error safe zone
             }
         }
 
