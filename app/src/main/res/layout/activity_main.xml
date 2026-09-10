@@ -3,37 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#111111">
+    android:background="#14151B">
 
-    <!-- Top Header & Tabs -->
+    <!-- PLAYit Top Header -->
     <LinearLayout
-        android:id="@+id/subTabs"
+        android:id="@+id/topHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1E1E24"
+        android:background="#1B1C26"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="MAX Player"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+        android:padding="16dp"
+        android:elevation="4dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:background="#FF671F"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="2dp"
-            android:text="PRO"
+            android:text="MAX Player"
             android:textColor="#FFFFFF"
-            android:textSize="12sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <View
@@ -41,13 +30,32 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <ImageButton
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_search"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Sub Tabs (Videos, Folders) -->
+    <LinearLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topHeader"
+        android:background="#1B1C26"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
+
         <TextView
             android:id="@+id/tabVideo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="24dp"
             android:text="Videos"
-            android:textColor="#2196F3"
+            android:textColor="#00E5FF"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -55,161 +63,30 @@
             android:id="@+id/tabFolder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="24dp"
             android:text="Folders"
             android:textColor="#AAAAAA"
             android:textSize="16sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tabPlaylist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="Playlists"
-            android:textColor="#AAAAAA"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/btnViewToggle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="☷"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp" />
     </LinearLayout>
 
-    <!-- RecyclerView for Media Files -->
+    <!-- Media List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/bottomSearchBar"
-        android:layout_below="@id/subTabs"
+        android:layout_above="@id/bottomNav"
+        android:layout_below="@id/tabLayout"
         android:clipToPadding="false"
         android:paddingBottom="8dp" />
 
-    <!-- Settings Layout (Hidden by Default) -->
-    <ScrollView
-        android:id="@+id/settingsLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomNav"
-        android:layout_below="@id/subTabs"
-        android:background="#111111"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:background="#22FF671F"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Upgrade to PRO"
-                    android:textColor="#FF671F"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="👑"
-                    android:textSize="24sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:orientation="horizontal"
-                android:weightSum="3">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="🎧 MP3"
-                    android:textColor="#FFF"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="🎨 Theme"
-                    android:textColor="#FFF"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="🔒 Vault"
-                    android:textColor="#FFF"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingVertical="16dp"
-                android:text="🎛️ 15-Band Equalizer"
-                android:textColor="#FFF"
-                android:textSize="18sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingVertical="16dp"
-                android:text="🗑️ Recycle Bin"
-                android:textColor="#FFF"
-                android:textSize="18sp" />
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- Bottom Search Bar -->
-    <LinearLayout
-        android:id="@+id/bottomSearchBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/bottomNav"
-        android:background="#2A2A30"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="12dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔍 Search audio, video..."
-            android:textColor="#AAAAAA"
-            android:textSize="16sp" />
-    </LinearLayout>
-
-    <!-- Bottom Navigation (Neon Blue Color applied here) -->
+    <!-- Exact PLAYit Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#1E1E24"
+        android:background="#1B1C26"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
         app:menu="@menu/bottom_nav_menu" />
