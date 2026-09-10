@@ -2,11 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_video"
-        android:icon="@android:drawable/ic_menu_camera"
+        android:icon="@android:drawable/ic_media_play"
         android:title="Video" />
     <item
         android:id="@+id/nav_music"
-        android:icon="@android:drawable/ic_media_play"
+        android:icon="@android:drawable/ic_media_ff"
         android:title="Music" />
     <item
         android:id="@+id/nav_settings"
