@@ -1,18 +1,22 @@
 package com.app.mediaplayer
 
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
@@ -32,12 +36,17 @@ class AudioPlayerActivity : AppCompatActivity() {
     private var tvCurrent: TextView? = null
     private var tvTotal: TextView? = null
     private var seekBar: SeekBar? = null
-    private var btnPlayPause: ImageButton? = null
+    private var cardPlayPause: CardView? = null
+    private var imgPlayPauseIcon: ImageView? = null
+    private var imgAlbumArt: ImageView? = null
     
     private lateinit var gestureDetector: GestureDetector
     private var isSeeking = false
     private var seekPosition: Long = 0
     private var totalDuration: Long = 0
+    
+    // Ghoomti hui CD ka animation
+    private var rotationAnimator: ObjectAnimator? = null
 
     private val handler = Handler(Looper.getMainLooper())
     private val updateProgressRunnable = object : Runnable {
@@ -55,97 +64,156 @@ class AudioPlayerActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_audio_player)
-
-        tvTitle = findViewById(R.id.tvAudioTitle)
-        tvCurrent = findViewById(R.id.tvAudioCurrent)
-        tvTotal = findViewById(R.id.tvAudioTotal)
-        seekBar = findViewById(R.id.seekAudio)
-        btnPlayPause = findViewById(R.id.btnAudioPlayPause)
-
-        findViewById<ImageButton>(R.id.btnBackAudio)?.setOnClickListener { finish() }
-        findViewById<TextView>(R.id.btnEqAudio)?.setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
-        findViewById<TextView>(R.id.btnShuffleAudio)?.setOnClickListener { Toast.makeText(this, "Shuffle Mode", Toast.LENGTH_SHORT).show() }
         
-        setupSwipeGestures()
+        try {
+            setContentView(R.layout.activity_audio_player)
+
+            tvTitle = findViewById(R.id.tvAudioTitle)
+            tvCurrent = findViewById(R.id.tvAudioCurrent)
+            tvTotal = findViewById(R.id.tvAudioTotal)
+            seekBar = findViewById(R.id.seekAudio)
+            cardPlayPause = findViewById(R.id.btnAudioPlayPause)
+            imgAlbumArt = findViewById(R.id.imgAlbumArt)
+            
+            // Naye gol button ke andar ki photo nikalna
+            if (cardPlayPause != null && cardPlayPause!!.childCount > 0) {
+                imgPlayPauseIcon = cardPlayPause!!.getChildAt(0) as? ImageView
+            }
+
+            findViewById<ImageButton>(R.id.btnBackAudio)?.setOnClickListener { finish() }
+            findViewById<ImageButton>(R.id.btnEqAudio)?.setOnClickListener { startActivity(Intent(this, EqualizerActivity::class.java)) }
+            
+            // CD Rotation Setup (10 second mein 1 chakkar)
+            imgAlbumArt?.let {
+                rotationAnimator = ObjectAnimator.ofFloat(it, View.ROTATION, 0f, 360f).apply {
+                    duration = 10000 
+                    repeatCount = ObjectAnimator.INFINITE
+                    interpolator = LinearInterpolator()
+                }
+            }
+
+            setupSwipeGestures()
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+            finish() // Error aane par chup-chaap bahar kar dega, crash nahi hoga
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
-        val future = MediaController.Builder(this, sessionToken).buildAsync()
-        
-        future.addListener({
-            mediaController = future.get()
-            player = mediaController
-            setupPlayer()
-        }, ContextCompat.getMainExecutor(this))
+        try {
+            val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
+            val future = MediaController.Builder(this, sessionToken).buildAsync()
+            
+            future.addListener({
+                mediaController = future.get()
+                player = mediaController
+                setupPlayer()
+            }, ContextCompat.getMainExecutor(this))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun setupPlayer() {
-        val mediaList = MainActivity.currentMediaList
-        val startIndex = intent.getIntExtra("START_INDEX", 0)
+        try {
+            val mediaList = MainActivity.currentMediaList
+            val startIndex = intent.getIntExtra("START_INDEX", 0)
 
-        if (mediaList.isNotEmpty()) {
-            if (player?.mediaItemCount != mediaList.size) {
-                val exoItems = mediaList.map { 
-                    ExoMediaItem.Builder()
-                        .setUri(it.path)
-                        .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
-                        .build() 
+            if (mediaList.isNotEmpty()) {
+                if (player?.mediaItemCount != mediaList.size) {
+                    val exoItems = mediaList.map { 
+                        ExoMediaItem.Builder()
+                            .setUri(it.path)
+                            .setMediaMetadata(MediaMetadata.Builder().setTitle(it.title).build())
+                            .build() 
+                    }
+                    player?.setMediaItems(exoItems, startIndex, 0L)
+                    player?.prepare()
+                    player?.play()
+                } else if (player?.currentMediaItemIndex != startIndex) {
+                    player?.seekTo(startIndex, 0L)
+                    player?.play()
                 }
-                player?.setMediaItems(exoItems, startIndex, 0L)
-                player?.prepare()
-                player?.play()
-            } else if (player?.currentMediaItemIndex != startIndex) {
-                player?.seekTo(startIndex, 0L)
-                player?.play()
+                
+                // Gaane ki asli photo lagana
+                setAlbumArt(mediaList[startIndex].path)
             }
-        }
 
-        player?.addListener(object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
-                tvTitle?.text = mediaItem?.mediaMetadata?.title?.toString() ?: "Unknown Audio"
-                player?.let {
-                    totalDuration = it.duration
-                    if(totalDuration > 0) {
-                        seekBar?.max = totalDuration.toInt()
-                        tvTotal?.text = formatTime(totalDuration)
+            player?.addListener(object : Player.Listener {
+                override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
+                    tvTitle?.text = mediaItem?.mediaMetadata?.title?.toString() ?: "Unknown Audio"
+                    
+                    val currentIndex = player?.currentMediaItemIndex ?: 0
+                    if(currentIndex in mediaList.indices) {
+                        setAlbumArt(mediaList[currentIndex].path)
+                    }
+
+                    player?.let {
+                        totalDuration = it.duration
+                        if(totalDuration > 0) {
+                            seekBar?.max = totalDuration.toInt()
+                            tvTotal?.text = formatTime(totalDuration)
+                        }
                     }
                 }
-            }
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isPlaying) {
-                    btnPlayPause?.setImageResource(android.R.drawable.ic_media_pause)
-                    handler.post(updateProgressRunnable)
-                } else {
-                    btnPlayPause?.setImageResource(android.R.drawable.ic_media_play)
-                    handler.removeCallbacks(updateProgressRunnable)
+                
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    if (isPlaying) {
+                        imgPlayPauseIcon?.setImageResource(android.R.drawable.ic_media_pause)
+                        handler.post(updateProgressRunnable)
+                        if (rotationAnimator?.isPaused == true) rotationAnimator?.resume() else rotationAnimator?.start()
+                    } else {
+                        imgPlayPauseIcon?.setImageResource(android.R.drawable.ic_media_play)
+                        handler.removeCallbacks(updateProgressRunnable)
+                        rotationAnimator?.pause()
+                    }
                 }
+            })
+
+            cardPlayPause?.setOnClickListener {
+                if (player?.isPlaying == true) player?.pause() else player?.play()
             }
-        })
 
-        btnPlayPause?.setOnClickListener {
-            if (player?.isPlaying == true) player?.pause() else player?.play()
-        }
+            findViewById<ImageButton>(R.id.btnAudioPrev)?.setOnClickListener { player?.seekToPreviousMediaItem() }
+            findViewById<ImageButton>(R.id.btnAudioNext)?.setOnClickListener { player?.seekToNextMediaItem() }
 
-        findViewById<ImageButton>(R.id.btnAudioPrev)?.setOnClickListener { player?.seekToPreviousMediaItem() }
-        findViewById<ImageButton>(R.id.btnAudioNext)?.setOnClickListener { player?.seekToNextMediaItem() }
-
-        seekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    tvCurrent?.text = formatTime(progress.toLong())
+            seekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (fromUser) {
+                        tvCurrent?.text = formatTime(progress.toLong())
+                    }
                 }
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                isSeeking = true
-            }
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isSeeking = false
-                seekBar?.let { player?.seekTo(it.progress.toLong()) }
-            }
-        })
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    isSeeking = true
+                }
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    isSeeking = false
+                    seekBar?.let { player?.seekTo(it.progress.toLong()) }
+                }
+            })
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    private fun setAlbumArt(path: String) {
+        Thread {
+            try {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(path)
+                val art = retriever.embeddedPicture
+                retriever.release()
+                
+                runOnUiThread {
+                    if (art != null) {
+                        val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
+                        imgAlbumArt?.setImageBitmap(bitmap)
+                    } else {
+                        imgAlbumArt?.setImageResource(android.R.drawable.ic_media_play)
+                    }
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }.start()
     }
 
     @SuppressLint("ClickableViewAccessibility")
